@@ -1,0 +1,44 @@
+# ==============================================================================
+# Unit: minecraft-bedrock.service
+# Responsabilidade: Gerenciamento do ciclo de vida do Bedrock Dedicated Server (BDS)
+# no systemd. Executa sob o usuario 'bedrock' em uma sessao Tmux isolada (bds-server),
+# com reinicio automatico em falhas, parada graciosa e protecoes de seguranca.
+# ==============================================================================
+# Referencia Oficial: BDS v1.26.52.3 - bedrock_server_how_to.html
+# ==============================================================================
+
+[Unit]
+Description=Minecraft Bedrock Dedicated Server (BDS)
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=bedrock
+Group=bedrock
+WorkingDirectory=/opt/bds/runtime
+
+# Iniciar o processo em sessao Tmux desacoplada com as bibliotecas locais
+ExecStart=/usr/bin/tmux new-session -s bds-server -d 'LD_LIBRARY_PATH=. ./bedrock_server'
+
+# Parada graciosa: envia 'stop' ao console para salvar mundos e fecha a sessao
+ExecStop=/opt/bds/bin/bds-cmd.sh stop
+TimeoutStopSec=35s
+
+# Politica de reinicio automatico
+Restart=on-failure
+RestartSec=10s
+
+# Hardening e isolamento de seguranca do systemd
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+LimitNOFILE=65536
+
+# Logs direcionados para o journald
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

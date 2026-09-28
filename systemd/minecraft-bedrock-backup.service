@@ -1,0 +1,18 @@
+# ==============================================================================
+# Unit: minecraft-bedrock-backup.service
+# Responsabilidade: Execucao pontual (oneshot) do script oficial de backup
+# a quente do Bedrock Dedicated Server sob o usuario de servico 'bedrock'.
+# ==============================================================================
+
+[Unit]
+Description=Minecraft Bedrock Dedicated Server - Hot Backup Job
+After=minecraft-bedrock.service
+Requires=minecraft-bedrock.service
+
+[Service]
+Type=oneshot
+User=bedrock
+Group=bedrock
+ExecStart=/opt/bds/bin/bds-backup.sh
+StandardOutput=journal
+StandardError=journal

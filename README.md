@@ -48,13 +48,38 @@ s_Bedrock_Server/
 │   │   ├── BACKUP_AND_RESTORE.md    # Backup a quente oficial e disaster recovery
 │   │   ├── UPDATE_AND_ROLLBACK.md   # Pipeline de atualizacao com rollback atomico
 │   │   └── ADDONS_AND_EXTENSIBILITY.md # Guia de pacotes e scripts sem alterar vanilla
+│   ├── acceptance/
+│   │   └── CHECKLIST.md             # Matriz e checklist formal de aceitacao
+│   ├── runbook/
+│   │   └── RUNBOOK.md               # Guia passo a passo de operacao diaria
 │   └── research/
 │       └── OFFICIAL_RESEARCH_PHASE_0.md # Auditoria de fontes oficiais e checksums
+├── scripts/
+│   ├── bds-install.sh               # Instalacao idempotente e provisionamento
+│   ├── bds-config.sh                # Geracao deterministica de configs a partir dos templates
+│   ├── bds-cmd.sh                   # Envio de comandos ao console via Tmux
+│   ├── bds-console.sh               # Terminal interativo de operacao
+│   ├── bds-backup.sh                # Backup a quente oficial (save hold/query/resume + truncate)
+│   ├── bds-restore.sh               # Recuperacao de desastres com verificacao de hash
+│   ├── bds-update.sh                # Atualizacao controlada com consulta de API e rollback
+│   ├── bds-rollback.sh              # Reversao atomica de versao
+│   └── bds-healthcheck.sh           # Smoke test e verificacao de integridade
+├── systemd/
+│   ├── minecraft-bedrock.service    # Unit de execucao como servico sob usuario bedrock
+│   ├── minecraft-bedrock-backup.service # Unit oneshot de backup
+│   └── minecraft-bedrock-backup.timer   # Temporizador de backup diario programado
+├── firewall/
+│   └── setup-firewall.sh            # Hardening de firewall UFW (19132/udp)
 ├── templates/
 │   ├── server.properties.template   # Template comentado com propriedades oficiais
 │   ├── allowlist.json.template      # Modelo de controle de acesso
-│   ├── permissions.json.template    # Modelo de atribuicao de operadore/membros
+│   ├── permissions.json.template    # Modelo de atribuicao de operadores/membros
 │   └── packetlimitconfig.json.template # Modelo de limitacao de pacotes
+├── tests/
+│   ├── test_config_generator.py     # Testes de geracao e validacao de configs
+│   ├── test_backup_logic.py         # Testes de parsing e truncamento de bytes
+│   ├── test_data_layout.py          # Testes de estrutura FHS e isolamento de dados
+│   └── run_all_tests.py             # Executor da suite de testes
 ├── CHANGELOG.md                     # Historico de mudancas (Keep a Changelog)
 ├── CODEOWNERS                       # Responsaveis pelo codigo e revisoes
 └── README.md                        # Este documento
@@ -67,10 +92,10 @@ s_Bedrock_Server/
 | Fase | Escopo | Status Atual |
 | :--- | :--- | :--- |
 | **Fase 0 – Pesquisa** | Auditoria das fontes oficiais da Mojang/Microsoft, verificação de hash SHA-256, requisitos de SO e limitações de clientes. | **Concluída** |
-| **Fase 1 – Arquitetura & Docs** | Elaboração dos ADRs, plano de rede (Android/PC/Xbox), plano de backup a quente oficial, pipeline de atualização com rollback e templates. | **Concluída (Aguardando Aprovação)** |
-| **Fase 2 – Implementação** | Desenvolvimento dos scripts modulares (`bds-install`, `bds-backup`, `bds-update`, `bds-rollback`, `bds-cmd`, `bds-console`, `bds-healthcheck`) e unit systemd. | *Bloqueada até aprovação da Fase 1* |
-| **Fase 3 – Testes** | Validação automatizada de smoke test, restauração de backup a quente e rollback de versão. | *Pendente* |
-| **Fase 4 – Runbook & Aceitação** | Guia de operação diária (Runbook) e checklist final de aceitação. | *Pendente* |
+| **Fase 1 – Arquitetura & Docs** | Elaboração dos ADRs, plano de rede (Android/PC/Xbox), plano de backup a quente oficial, pipeline de atualização com rollback e templates. | **Concluída e Aprovada** |
+| **Fase 2 – Implementação** | Desenvolvimento dos scripts modulares (`bds-install`, `bds-backup`, `bds-update`, `bds-rollback`, `bds-cmd`, `bds-console`, `bds-healthcheck`, `bds-restore`) e units systemd. | **Concluída** |
+| **Fase 3 – Testes** | Validação automatizada de smoke test, testes unitários de truncamento LevelDB, parsing e integridade de templates. | **Concluída (100% aprovada)** |
+| **Fase 4 – Runbook & Aceitação** | Guia de operação diária (Runbook) e checklist final de aceitação técnica. | **Concluída** |
 
 ---
 

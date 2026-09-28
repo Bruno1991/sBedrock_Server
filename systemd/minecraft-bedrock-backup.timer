@@ -1,0 +1,20 @@
+# ==============================================================================
+# Unit: minecraft-bedrock-backup.timer
+# Responsabilidade: Temporizador agendado para acionamento periodico
+# do backup a quente oficial do Bedrock Dedicated Server.
+# ==============================================================================
+
+[Unit]
+Description=Minecraft Bedrock Dedicated Server - Daily Hot Backup Schedule
+Requires=minecraft-bedrock.service
+
+[Timer]
+# Executa diariamente as 04:00 da manha
+OnCalendar=*-*-* 04:00:00
+# Caso o servidor estivesse desligado no horario, executa imediatamente ao ligar
+Persistent=true
+# Adiciona jitter aleatorio de 5 minutos para evitar picos de I/O simultaneos
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

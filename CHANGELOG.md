@@ -26,3 +26,19 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - Documentos de arquitetura detalhada: `ARCHITECTURE.md`, `NETWORKING.md`, `BACKUP_AND_RESTORE.md`, `UPDATE_AND_ROLLBACK.md` e `ADDONS_AND_EXTENSIBILITY.md`.
   - Templates de configuração oficiais: `server.properties.template`, `allowlist.json.template`, `permissions.json.template` e `packetlimitconfig.json.template`.
   - Governança de repositório: README, CODEOWNERS, `.gitignore`, templates de PR e Issue, e workflow GitHub Actions com `shellcheck` e validação JSON.
+- **Fase 2 (Implementação Modular)**:
+  - `scripts/bds-install.sh`: Script idempotente de provisionamento completo, download oficial, verificação de hash SHA-256 e particionamento FHS em `/opt/bds`.
+  - `scripts/bds-config.sh`: Gerador determinístico de `server.properties` e validação de tipos de dados conforme v1.26.52.3.
+  - `scripts/bds-cmd.sh` e `scripts/bds-console.sh`: Ferramentas IPC para injeção não interativa de comandos e conexão interativa de operador via Tmux.
+  - `scripts/bds-backup.sh`: Pipeline completo do backup a quente com truncamento de bytes LevelDB, compressão `.tar.gz`, `.sha256` e rotação temporal.
+  - `scripts/bds-restore.sh`: Procedimento de recuperação de desastres com validação de checksum e isolamento do mundo danificado.
+  - `scripts/bds-update.sh` e `scripts/bds-rollback.sh`: Pipeline de atualização controlada via API da Mojang com rollback automático e manual.
+  - `scripts/bds-healthcheck.sh`: Smoke test automatizado de 5 etapas para validação de integridade operacional.
+  - `systemd/`: Units de serviço (`minecraft-bedrock.service`), job oneshot (`minecraft-bedrock-backup.service`) e temporizador diário (`minecraft-bedrock-backup.timer`).
+  - `firewall/setup-firewall.sh`: Configuração e reforço de firewall UFW liberando porta 19132/udp.
+- **Fase 3 (Testes e Validação)**:
+  - Suíte de testes automatizados (`tests/test_config_generator.py`, `tests/test_backup_logic.py`, `tests/test_data_layout.py`, `tests/run_all_tests.py`).
+  - Validação de 100% dos scripts shell via `bash -n` e validação de templates JSON.
+- **Fase 4 (Runbook e Aceitação)**:
+  - `docs/runbook/RUNBOOK.md`: Guia completo de operação diária, dimensionamento em Proxmox LXC, allowlist, backups, restauração e diagnósticos.
+  - `docs/acceptance/CHECKLIST.md`: Matriz e checklist formal de aceitação técnica comprovando o atendimento de 100% dos requisitos.
