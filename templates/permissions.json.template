@@ -1,14 +1,1 @@
-[
-  {
-    "permission": "operator",
-    "xuid": ""
-  },
-  {
-    "permission": "member",
-    "xuid": ""
-  },
-  {
-    "permission": "visitor",
-    "xuid": ""
-  }
-]
+[]

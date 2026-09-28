@@ -59,10 +59,10 @@ default-player-permission-level=${BDS_DEFAULT_PLAYER_PERMISSION:-member}
 # ------------------------------------------------------------------------------
 
 # Protocolo de transporte de rede.
-# "raknet": Transporte tradicional UDP puro (Recomendado para LAN local e consoles).
-# "nethernet": Transporte WebRTC com sinalizacao TCP HTTP e gameplay UDP (Padrão Mojang).
+# "raknet": Transporte tradicional UDP puro (legado).
+# "nethernet": Transporte WebRTC com sinalizacao e gameplay UDP (Obrigatorio no BDS 1.26+).
 # Valores permitidos: "raknet", "nethernet".
-transport=${BDS_TRANSPORT:-raknet}
+transport=${BDS_TRANSPORT:-nethernet}
 
 # Porta IPv4 de escuta do servidor.
 # Valores permitidos: Inteiro entre 1 e 65535.
