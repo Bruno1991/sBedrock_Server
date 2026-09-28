@@ -1,0 +1,14 @@
+# Responsabilidade: Definicao formal de propriedade de arquivos e caminhos no repositorio.
+# Cada alteracao requer aprovacao dos proprietarios listados.
+
+# Proprietario global padrao
+* @Bruno1991
+
+# Documentacao de Arquitetura e Decisoes
+/docs/ @Bruno1991
+
+# Templates de Configuracao do Servidor
+/templates/ @Bruno1991
+
+# Automacao e Workflows de CI
+/.github/ @Bruno1991

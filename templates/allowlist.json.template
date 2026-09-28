@@ -1,0 +1,12 @@
+[
+  {
+    "name": "AdminGamertag",
+    "xuid": "",
+    "ignoresPlayerLimit": true
+  },
+  {
+    "name": "PlayerOne",
+    "xuid": "",
+    "ignoresPlayerLimit": false
+  }
+]

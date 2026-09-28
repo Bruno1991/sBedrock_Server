@@ -1,0 +1,30 @@
+# Responsabilidade: Ignorar arquivos de dados locais, temporarios, segredos e mundos do Git.
+
+# Arquivos de dados do mundo e estado de execucao
+worlds/
+data/worlds/
+data/backups/
+data/keys/
+*.pem
+*.key
+*.log
+*.ldb
+
+# Arquivos de configuracao com segredos ou definicoes de producao locais
+.env
+.env.local
+*.secret
+
+# Pacotes baixados e descompactados
+*.zip
+*.tar.gz
+bedrock-server-*
+bds_extracted/
+bds_docs/
+
+# Logs e arquivos de sistema
+*.swp
+*.bak
+*~
+.DS_Store
+Thumbs.db

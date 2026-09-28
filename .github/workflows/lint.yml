@@ -1,0 +1,48 @@
+name: Lint and Validation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Shellcheck and JQ
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck jq
+
+      - name: Lint Shell Scripts
+        run: |
+          echo "Verificando scripts shell..."
+          if compgen -G "scripts/*.sh" > /dev/null; then
+            shellcheck -x scripts/*.sh
+          else
+            echo "Nenhum script .sh encontrado ainda em scripts/. Etapa de preparacao da Fase 1."
+          fi
+
+      - name: Validate JSON Templates
+        run: |
+          echo "Validando sintaxe de templates JSON..."
+          for json_file in templates/*.json templates/*.json.template; do
+            if [ -f "$json_file" ]; then
+              echo "Validando $json_file..."
+              jq empty "$json_file" || exit 1
+            fi
+          done
+          echo "Todos os arquivos JSON sao validos!"
+
+      - name: Validate Template Substitution Variables
+        run: |
+          echo "Validando formato das variaveis no server.properties.template..."
+          grep -E '\$\{BDS_[A-Z_]+(:?-[^}]*)?\}' templates/server.properties.template > /dev/null || {
+            echo "Erro: Nenhuma variavel de template no formato padrao encontrada!"
+            exit 1
+          }
+          echo "Template server.properties validado com sucesso!"

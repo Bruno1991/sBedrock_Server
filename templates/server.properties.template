@@ -1,0 +1,210 @@
+# ==============================================================================
+# MINECRAFT BEDROCK DEDICATED SERVER (BDS) - CONFIGURATION TEMPLATE
+# Versao do BDS de Referencia: 1.26.52.3 (Oficial Mojang / Microsoft)
+# Documentacao: bedrock_server_how_to.html / learn.microsoft.com/minecraft/creator
+# ==============================================================================
+# Regra de Engenharia: Toda propriedade abaixo e oficial da versao 1.26.52.3.
+# Nenhuma propriedade foi inventada.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Identificacao e Acesso Basico
+# ------------------------------------------------------------------------------
+
+# Nome do servidor exibido na lista de servidores do cliente in-game.
+# Valores permitidos: Qualquer string sem ponto e virgula (;).
+server-name=${BDS_SERVER_NAME:-Bedrock Dedicated Server}
+
+# Modo de jogo padrao para novos jogadores.
+# Valores permitidos: "survival", "creative", "adventure".
+gamemode=${BDS_GAMEMODE:-survival}
+
+# Forca o envio do modo de jogo configurado aqui em vez do modo salvo no mundo.
+# Valores permitidos: "true", "false".
+force-gamemode=${BDS_FORCE_GAMEMODE:-false}
+
+# Nivel de dificuldade do mundo.
+# Valores permitidos: "peaceful", "easy", "normal", "hard".
+difficulty=${BDS_DIFFICULTY:-normal}
+
+# Habilita comandos de trapaça (cheats).
+# Valores permitidos: "true", "false".
+allow-cheats=${BDS_ALLOW_CHEATS:-false}
+
+# Numero maximo de jogadores simultaneos permitidos no servidor.
+# Ajustado para manter performance otimizada em hardware com recursos compartilhados.
+# Valores permitidos: Inteiro positivo.
+max-players=${BDS_MAX_PLAYERS:-10}
+
+# ------------------------------------------------------------------------------
+# 2. Seguranca e Controle de Acesso
+# ------------------------------------------------------------------------------
+
+# Exige autenticacao via Xbox Live para todos os jogadores conectados.
+# Obrigatorio para seguranca e resolucao confiavel de XUIDs.
+# Valores permitidos: "true", "false".
+online-mode=${BDS_ONLINE_MODE:-true}
+
+# Ativa o filtro rigoroso de lista de permissao (allowlist.json).
+# Apenas jogadores listados no arquivo poderao conectar.
+# Valores permitidos: "true", "false".
+allow-list=${BDS_ALLOW_LIST:-true}
+
+# Nivel de permissao atribuido a novos jogadores que conectam pela primeira vez.
+# Valores permitidos: "visitor", "member", "operator".
+default-player-permission-level=${BDS_DEFAULT_PLAYER_PERMISSION:-member}
+
+# ------------------------------------------------------------------------------
+# 3. Rede e Portas
+# ------------------------------------------------------------------------------
+
+# Protocolo de transporte de rede.
+# "raknet": Transporte tradicional UDP puro (Recomendado para LAN local e consoles).
+# "nethernet": Transporte WebRTC com sinalizacao TCP HTTP e gameplay UDP (Padrão Mojang).
+# Valores permitidos: "raknet", "nethernet".
+transport=${BDS_TRANSPORT:-raknet}
+
+# Porta IPv4 de escuta do servidor.
+# Valores permitidos: Inteiro entre 1 e 65535.
+server-port=${BDS_SERVER_PORT:-19132}
+
+# Porta IPv6 de escuta do servidor (Ignorada quando transport=nethernet).
+# Valores permitidos: Inteiro entre 1 e 65535.
+server-portv6=${BDS_SERVER_PORT_V6:-19133}
+
+# Endereço IP local para ligar o socket de escuta (vazio = todas as interfaces).
+# Ignorado quando transport=raknet.
+# server-ip=
+
+# Configuracao de portas UDP para NetherNet (Ignorado quando transport=raknet).
+# Formato: internal ou start-end ou [ip:]external:internal
+# server-udp-ports=19132-19140
+
+# Habilita a visibilidade e resposta a buscas na rede local (LAN).
+# Fundamental para descoberta automatica por clientes Android, PC e consoles Xbox na mesma sub-rede.
+# Valores permitidos: "true", "false".
+enable-lan-visibility=${BDS_ENABLE_LAN_VISIBILITY:-true}
+
+# ------------------------------------------------------------------------------
+# 4. Desempenho e Dimensionamento de Hardware (Ajustado para ~12 GB RAM Host)
+# ------------------------------------------------------------------------------
+
+# Distancia maxima de visao enviada aos clientes (em chunks).
+# 16 a 20 chunks proporciona excelente visibilidade sem saturar CPU/RAM em hardware compartilhado.
+# Valores permitidos: Inteiro igual ou maior que 5.
+view-distance=${BDS_VIEW_DISTANCE:-20}
+
+# Distancia de simulacao de ticks (em chunks ao redor de cada jogador).
+# Valores permitidos: Inteiro entre 4 e 12 (padrao otimizado: 4).
+tick-distance=${BDS_TICK_DISTANCE:-4}
+
+# Numero maximo de threads que o servidor tentara utilizar.
+# 0 = maximo possivel detectado pelo sistema operacional.
+# Valores permitidos: Inteiro nao negativo.
+max-threads=${BDS_MAX_THREADS:-4}
+
+# Tempo de inatividade (em minutos) antes de desconectar um jogador ausente (AFK).
+# 0 = permite jogadores ausentes indefinidamente.
+# Valores permitidos: Inteiro nao negativo.
+player-idle-timeout=${BDS_PLAYER_IDLE_TIMEOUT:-30}
+
+# Limite minimo em bytes para compressao de pacotes de rede.
+# Valores permitidos: 0 a 65535.
+compression-threshold=1
+
+# Algoritmo de compressao de rede.
+# Valores permitidos: "zlib", "snappy".
+compression-algorithm=zlib
+
+# ------------------------------------------------------------------------------
+# 5. Gerenciamento do Mundo
+# ------------------------------------------------------------------------------
+
+# Nome do nivel/mundo ativo (determina a pasta sob /opt/bds/data/worlds/).
+# Valores permitidos: String sem caracteres invalidos para nome de arquivo.
+level-name=${BDS_LEVEL_NAME:-Bedrock level}
+
+# Semente de geracao do mundo (vazio = semente aleatoria).
+# Valores permitidos: Qualquer string ou inteiro.
+level-seed=${BDS_LEVEL_SEED:-}
+
+# Exige que os clientes baixem e usem os pacotes de textura do mundo.
+# Valores permitidos: "true", "false".
+texturepack-required=${BDS_TEXTUREPACK_REQUIRED:-false}
+
+# Permite que o cliente gere visualizacao de chunks fora do raio de interacao.
+# Valores permitidos: "true", "false".
+client-side-chunk-generation-enabled=true
+
+# Proporcao de geracao de chunks no servidor vs cliente (Disabled = dinamico).
+# Valores permitidos: "Disabled" ou float entre 0.0 e 1.0.
+server-build-radius-ratio=Disabled
+
+# Utiliza IDs de blocos estaveis em formato hash na rede.
+# Valores permitidos: "true", "false".
+block-network-ids-are-hashes=true
+
+# ------------------------------------------------------------------------------
+# 6. Seguranca Avancada e Validacao de Movimento
+# ------------------------------------------------------------------------------
+
+# Validacao estrita de posicao do jogador no servidor.
+server-authoritative-movement-strict=false
+
+# Validacao estrita de desmontaria de entidades (dismount).
+server-authoritative-dismount-strict=false
+
+# Validacao estrita de interacao com entidades.
+server-authoritative-entity-interactions-strict=false
+
+# Tolerancia de discrepancia de posicao entre cliente e servidor (0.5 = padrao equilibrado).
+player-position-acceptance-threshold=0.5
+
+# Tolerancia angular entre direcao de visao e ataque do jogador.
+player-movement-action-direction-threshold=0.85
+
+# Quebra de bloco com autoridade do servidor.
+# server-authoritative-block-breaking=false
+server-authoritative-block-breaking-pick-range-scalar=1.5
+
+# Restricao de chat.
+# Valores permitidos: "None", "Dropped", "Disabled".
+chat-restriction=None
+
+# Desativa interacao direta entre jogadores.
+disable-player-interaction=false
+
+# Desativa skins customizadas fora dos ativos oficiais da loja para prevenir conteudo ofensivo.
+# Valores permitidos: "true", "false".
+disable-custom-skins=false
+
+# ------------------------------------------------------------------------------
+# 7. Logs e Diagnosticos
+# ------------------------------------------------------------------------------
+
+content-log-file-enabled=false
+content-log-console-output-enabled=false
+content-log-level=info
+
+# ------------------------------------------------------------------------------
+# 8. Script Watchdog e Governanca da Scripting API
+# ------------------------------------------------------------------------------
+
+allow-outbound-script-debugging=false
+allow-inbound-script-debugging=false
+script-debugger-auto-attach=disabled
+
+script-watchdog-enable=true
+script-watchdog-enable-exception-handling=true
+script-watchdog-enable-shutdown=true
+script-watchdog-hang-exception=true
+script-watchdog-hang-threshold=10000
+script-watchdog-memory-warning=150
+script-watchdog-memory-limit=300
+
+# ------------------------------------------------------------------------------
+# 9. Taxa de Pacotes (DDoS / Flood Protection)
+# ------------------------------------------------------------------------------
+
+# Ativa o rate limiter com regras definidas em packetlimitconfig.json
+enable-packet-rate-limiter=${BDS_ENABLE_PACKET_LIMITER:-true}
