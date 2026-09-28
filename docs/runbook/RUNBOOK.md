@@ -145,3 +145,50 @@ bds-rollback
 | **Jogadores não conseguem conectar via LAN** | Confirmar regras de firewall: `sudo ufw status`. Confirmar que o processo está escutando na porta 19132: `ss -ulpn \| grep 19132`. |
 | **Console Xbox não visualiza o servidor** | Verificar se o Xbox está na mesma sub-rede L2 do container LXC. Em caso de restrição de Wi-Fi/switch, consultar as opções de relay no documento [NETWORKING.md](file:///C:/dev/s_Bedrock_Server/docs/architecture/NETWORKING.md). |
 | **Erro "Outdated Server" no cliente** | O jogo atualizou no celular/PC; execute `bds-update` no servidor para acompanhar a versão oficial. |
+
+---
+
+## 6. Guia de Operação Nativa no Windows 10/11
+
+Caso você esteja executando o servidor diretamente no Windows:
+
+### 6.1. Inicialização Rápida (1 Clique)
+- Basta dar duplo clique no atalho:
+  [`windows/iniciar-servidor.bat`](file:///C:/dev/s_Bedrock_Server/windows/iniciar-servidor.bat)
+- Uma janela de console do Bedrock Dedicated Server se abrirá exibindo o status do servidor e a mensagem:
+  `[INFO] Server started.`
+- Para parar o servidor de forma limpa, digite `stop` e pressione Enter no console.
+
+### 6.2. Jogar no Mesmo Computador (Isenção de Loopback)
+Para que o Minecraft Windows 10/11 consiga se conectar ao servidor na mesma máquina (`127.0.0.1` ou `localhost`):
+1. Dê duplo clique com o botão direito em [`windows/habilitar-conexao-local.bat`](file:///C:/dev/s_Bedrock_Server/windows/habilitar-conexao-local.bat) e selecione **"Executar como Administrador"**.
+2. Abra o Minecraft no Windows -> **Jogar** -> **Servidores** -> **Adicionar Servidor**:
+   - **Nome**: `Local Server`
+   - **Endereço**: `127.0.0.1`
+   - **Porta**: `19132`
+
+### 6.3. Conexão de Outros Aparelhos na Rede (Android, Xbox e Outros PCs)
+1. Libere a porta no Firewall do Windows Defender executando o PowerShell como Administrador:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\windows\setup-firewall.ps1
+   ```
+2. Descubra o IP local do seu computador Windows executando `ipconfig` (ex.: `192.168.1.100`).
+3. No Android ou outro PC:
+   - Adicione o servidor informando o IP local (ex.: `192.168.1.100`) e porta `19132`.
+4. No Xbox:
+   - Com o console no mesmo Wi-Fi, o servidor aparecerá automaticamente em **Amigos** -> **Jogos em LAN**.
+
+### 6.4. Backup e Restauração no Windows
+- **Criar backup a qualquer momento**:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\windows\bds-backup.ps1
+  ```
+- **Restaurar um backup específico**:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\windows\bds-restore.ps1 -BackupFile bds-backup-win-YYYYMMDD_HHMMSS.zip
+  ```
+- **Verificar saúde e portas**:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\windows\bds-healthcheck.ps1
+  ```
+

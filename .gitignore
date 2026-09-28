@@ -16,6 +16,7 @@ data/keys/
 *.secret
 
 # Pacotes baixados e descompactados
+server/
 *.zip
 *.tar.gz
 bedrock-server-*

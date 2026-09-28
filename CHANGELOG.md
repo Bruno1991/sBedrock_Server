@@ -42,3 +42,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - **Fase 4 (Runbook e Aceitação)**:
   - `docs/runbook/RUNBOOK.md`: Guia completo de operação diária, dimensionamento em Proxmox LXC, allowlist, backups, restauração e diagnósticos.
   - `docs/acceptance/CHECKLIST.md`: Matriz e checklist formal de aceitação técnica comprovando o atendimento de 100% dos requisitos.
+- **Suporte Nativo ao Windows (Dual-Platform)**:
+  - `docs/adr/ADR-006-windows-native-execution.md`: Decisão arquitetural para execução nativa no Windows 10/11 x64 com NTFS Junctions.
+  - `windows/bds-install.ps1`: Instalador automatizado para Windows com verificação de hash SHA-256 (`2c9b98d0...`).
+  - `windows/bds-config.ps1`: Gerador de configurações para Windows a partir dos templates oficiais.
+  - `windows/bds-start.ps1` e `windows/iniciar-servidor.bat`: Inicializadores do servidor com console interativo e duplo clique.
+  - `windows/enable-loopback.ps1` e `windows/habilitar-conexao-local.bat`: Isenção de loopback via `CheckNetIsolation` para conexão no mesmo PC.
+  - `windows/setup-firewall.ps1`: Configuração automatizada de regras no Firewall do Windows Defender (19132/udp).
+  - `windows/bds-backup.ps1` e `windows/bds-restore.ps1`: Procedimentos de backup comprimido (.zip) e restauração no Windows.
+  - `windows/bds-healthcheck.ps1`: Smoke test de verificação de processo, socket UDP e loopback no Windows.
+
