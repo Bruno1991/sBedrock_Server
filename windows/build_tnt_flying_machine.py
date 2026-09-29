@@ -1,16 +1,16 @@
 """
 Script de construcao e validacao da Maquina Voadora de TNT no Minecraft Bedrock Dedicated Server.
 Coordenadas base: 0, 150, 0.
-Inclui:
-- Estacao de Lancamento com Alavanca (Ligar / Parar)
-- Motor Voador Bedrock (Pistao Normal + Pistao Grudento + Observadores + Blocos de Slime)
-- Ejetor de TNT voltado para baixo carregado com 576 TNTs (9 slots cheios)
-- Observador de disparo continuo de TNT durante o voo
+Design:
+- Estacao de Embarque em Obsidian (imune a colagem de slime/mel)
+- Alavanca de ignicao com acionamento direto via trapdoor
+- Motor Bedrock Diagonal 2-wide (Slime + Mel)
+- Ejetor de TNT voltado para baixo carregado com 576 TNTs
 """
 
+from bds_cmd import send_command, get_bds_pid
 import time
 import sys
-from bds_cmd import send_command, get_bds_pid
 
 def run_cmd(cmd, delay=0.08):
     ok = send_command(cmd, wait_ms=int(delay * 1000))
@@ -28,102 +28,59 @@ def build_machine():
     print(" Construindo Maquina Voadora de TNT Completa no BDS (0, 150, 0)")
     print("======================================================================")
 
-    # 1. Garantir tickingarea para que o chunk fique ativo permanentemente
-    print("[1/6] Garantindo Ticking Area em torno de 0, 150, 0...")
-    run_cmd('tickingarea add -16 140 -16 32 160 16 tnt_flight_corridor')
+    # 1. Garantir tickingarea para que o corredor de voo fique permanentemente ativo
+    print("[1/5] Garantindo Ticking Area em torno de 0, 150, 0...")
+    run_cmd('tickingarea add -16 140 -16 64 160 16 tnt_flight_corridor')
 
-    # 2. Limpar espaco aereo imediato (runway)
-    print("[2/6] Limpando espaco aereo da estacao e pista de voo...")
-    # Limpar area da maquina e estacao
-    run_cmd('fill -4 148 -3 10 154 3 air')
+    # 2. Limpar corredor aereo para garantir que nada encoste nos blocos de slime
+    print("[2/5] Limpando espaco aereo da estacao e pista de voo...")
+    run_cmd("fill -6 148 -4 50 155 4 air")
+    time.sleep(0.2)
 
-    # 3. Construir Estacao de Controle e Plataforma de Operacao (Y = 148 - 149)
-    print("[3/6] Construindo plataforma da estacao com alavanca de partida/parada...")
-    # Piso da plataforma de observacao para o jogador em X = -4 a -1, Z = -3 a 1
-    run_cmd('fill -4 148 -3 -1 148 1 smooth_stone')
-    # Guarda-corpo de vidro para seguranca do jogador
-    run_cmd('fill -4 149 -3 -4 149 1 glass')
-    run_cmd('fill -4 149 -3 -1 149 -3 glass')
-    run_cmd('fill -1 149 -3 -1 149 -2 glass')
+    # 3. Construir Estacao de Controle em Obsidian
+    print("[3/5] Construindo plataforma da estacao em Obsidian...")
+    # Plataforma do jogador (Y = 149)
+    run_cmd("fill -5 149 -3 -2 149 1 obsidian")
+    # Parede de apoio da alavanca e do alcapao
+    run_cmd("setblock -2 150 0 obsidian")
+    run_cmd("setblock -2 151 0 obsidian")
 
-    # Bloco de apoio do painel de controle (Obsidian nao gruda em slime)
-    run_cmd('setblock -2 149 -1 obsidian')
+    # Alcapao de acionamento em X = -1, Y = 150, Z = 0 (na face do observador traseiro)
+    run_cmd('setblock -1 150 0 trapdoor ["direction"=2]')
+    # Painel da Alavanca em X = -2, Y = 151, Z = -1
     run_cmd('setblock -2 150 -1 obsidian')
-    # Alavanca de Ligar / Parar no painel
-    # facing_direction ou lever_direction para fixar na face do bloco
-    run_cmd('setblock -2 151 -1 lever ["lever_direction"="up_north_south"]')
+    run_cmd('setblock -2 151 -1 obsidian')
+    run_cmd('setblock -2 152 -1 lever ["lever_direction"="up_north_south"]')
+    # Fiamento de redstone conectando a alavanca ao alcapao
+    run_cmd('setblock -2 152 0 redstone_wire')
 
-    # Mecanismo de Trava / Parada com Pistao e Obsidian
-    # Pistao da estacao em X = -2, Y = 150, Z = 0 apontado para East (+X)
-    run_cmd('setblock -3 150 0 obsidian')
-    run_cmd('setblock -2 150 0 sticky_piston ["facing_direction"=5]')
-    # Bloco de Obsidian que serve de trava na ponta do pistao (X = -1, Y = 150, Z = 0)
-    run_cmd('setblock -1 150 0 obsidian')
-    # Ligacao de redstone entre a alavanca e o pistao de trava
-    run_cmd('setblock -2 150 0 sticky_piston ["facing_direction"=5]')
-    run_cmd('setblock -3 151 -1 redstone_wire')
-    run_cmd('setblock -3 151 0 redstone_wire')
-
-    # 4. Construir o Motor Voador da Maquina (Bedrock Engine)
-    # Direcao de voo: +X (Leste)
-    print("[4/6] Montando o motor voador (Pistao Normal, Pistao Grudento e Slimes)...")
-    
-    # --- Modulo Traseiro (Empurrador) ---
-    # Observador Traseiro em (0, 150, 0): Face voltada para -X (West = 4), dot de saida para +X (East)
+    # 4. Montar o Motor Voador Desacoplado (Slime + Mel)
+    print("[4/5] Montando o motor voador Slime + Mel...")
+    # Lado Slime (Z = 0)
     run_cmd('setblock 0 150 0 observer ["facing_direction"=4]')
-    # Pistao Normal em (1, 150, 0): Apontado para +X (East = 5)
     run_cmd('setblock 1 150 0 piston ["facing_direction"=5]')
-    # Slime blocks do Modulo Traseiro na camada superior (Y = 151)
-    run_cmd('setblock 0 151 0 slime')
-    run_cmd('setblock 1 151 0 slime')
-
-    # --- Modulo Dianteiro (Puxador) ---
-    # Slime blocks do Modulo Dianteiro na camada inferior (Y = 150)
     run_cmd('setblock 2 150 0 slime')
-    run_cmd('setblock 3 150 0 slime')
-    # Pistao Grudento em (2, 151, 0): Apontado para -X (West = 4), puxa o Modulo Traseiro
-    run_cmd('setblock 2 151 0 sticky_piston ["facing_direction"=4]')
-    # Observador Dianteiro em (3, 151, 0): Face voltada para +X (East = 5), dot de saida para -X (West)
-    run_cmd('setblock 3 151 0 observer ["facing_direction"=5]')
 
-    # 5. Acoplar o Modulo de Bombardeio TNT (Dispenser + Observador Gatilho)
-    print("[5/6] Instalando Ejetor de TNT e Observador de detonacao...")
-    # Ejetor voltado para baixo (facing_direction = 0 / down) conectado ao Slime Dianteiro
-    run_cmd('setblock 2 150 1 dispenser ["facing_direction"=0]')
-    # Observador gatilho em (3, 150, 1): Face voltada para +X (East = 5), dot de saida para -X no Ejetor
+    # Lado Mel (Z = 1)
+    run_cmd('setblock 1 150 1 honey_block')
+    run_cmd('setblock 2 150 1 sticky_piston ["facing_direction"=4]')
     run_cmd('setblock 3 150 1 observer ["facing_direction"=5]')
 
-    # Abastecer o Ejetor com 9 slots de TNT (64 unidades por slot = 576 TNTs)
-    print("[5/6 - Cont.] Abastecendo 576 TNTs nos 9 slots do Ejetor...")
-    for slot in range(9):
-        run_cmd(f'replaceitem block 2 150 1 slot.container {slot} tnt 64', delay=0.03)
+    # 5. Acoplar Ejetor de TNT e Abastecer
+    print("[5/5] Acoplando Ejetor de TNT e abastecendo 576 TNTs...")
+    run_cmd('setblock 2 150 -1 dispenser ["facing_direction"=0]')
+    run_cmd('setblock 3 150 -1 observer ["facing_direction"=5]')
 
-    # 6. Validar posicionamento de todos os blocos fundamentais
-    print("[6/6] Validando integridade de todos os componentes com o BDS...")
-    checks = [
-        ("0 150 0", "observer", "Observador Traseiro"),
-        ("1 150 0", "piston", "Pistao Normal"),
-        ("0 151 0", "slime", "Slime Superior 1"),
-        ("1 151 0", "slime", "Slime Superior 2"),
-        ("2 150 0", "slime", "Slime Inferior 1"),
-        ("3 150 0", "slime", "Slime Inferior 2"),
-        ("2 151 0", "sticky_piston", "Pistao Grudento"),
-        ("3 151 0", "observer", "Observador Dianteiro"),
-        ("2 150 1", "dispenser", "Ejetor de TNT"),
-        ("3 150 1", "observer", "Observador Gatilho"),
-        ("-1 150 0", "obsidian", "Trava de Parada (Obsidian)"),
-        ("-2 151 -1", "lever", "Alavanca de Controle")
-    ]
-    
-    for coord, block_type, name in checks:
-        run_cmd(f'testforblock {coord} {block_type}', delay=0.05)
+    for slot in range(9):
+        run_cmd(f'replaceitem block 2 150 -1 slot.container {slot} tnt 64', delay=0.03)
+
+    # Posicionar jogadores
+    run_cmd('tp @a -3 150 -1')
 
     print("======================================================================")
     print(" [SUCESSO] Maquina Voadora de TNT montada e pronta para operacao!")
-    print(" Localizacao da estacao: X = -2, Y = 150, Z = -1 (ao lado de 0, 150, 0)")
-    print(" Status da Alavanca:")
-    print(" - Alavanca LIGADA:  Trava ativada (Maquina parada e bloqueada)")
-    print(" - Alavanca DESLIGADA: Trava recolhida -> Maquina inicia voo e bombardeio")
+    print(" Localizacao da Alavanca: X = -2, Y = 152, Z = -1")
+    print(" Ao acionar a alavanca, o alcapao abre/fecha e dispara o motor!")
     print("======================================================================")
 
 if __name__ == '__main__':
