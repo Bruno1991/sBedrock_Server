@@ -54,6 +54,10 @@ allow-list=${BDS_ALLOW_LIST:-true}
 # Valores permitidos: "visitor", "member", "operator".
 default-player-permission-level=${BDS_DEFAULT_PLAYER_PERMISSION:-member}
 
+# Forca os clientes a aceitarem/baixarem os pacotes de recursos do servidor para poderem entrar.
+# Valores permitidos: "true", "false".
+texturepack-required=${BDS_TEXTUREPACK_REQUIRED:-true}
+
 # ------------------------------------------------------------------------------
 # 3. Rede e Portas
 # ------------------------------------------------------------------------------
@@ -148,6 +152,9 @@ block-network-ids-are-hashes=true
 # 6. Seguranca Avancada e Validacao de Movimento
 # ------------------------------------------------------------------------------
 
+# Modo de autoridade de movimento (client-auth permite bots externos sem engine C++ nativa).
+server-authoritative-movement=client-auth
+
 # Validacao estrita de posicao do jogador no servidor.
 server-authoritative-movement-strict=false
 
@@ -157,8 +164,8 @@ server-authoritative-dismount-strict=false
 # Validacao estrita de interacao com entidades.
 server-authoritative-entity-interactions-strict=false
 
-# Tolerancia de discrepancia de posicao entre cliente e servidor (0.5 = padrao equilibrado).
-player-position-acceptance-threshold=0.5
+# Tolerancia de discrepancia de posicao entre cliente e servidor (100.0 permite locomocao autonoma sem rubber-banding).
+player-position-acceptance-threshold=100.0
 
 # Tolerancia angular entre direcao de visao e ataque do jogador.
 player-movement-action-direction-threshold=0.85

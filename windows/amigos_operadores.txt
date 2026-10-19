@@ -1,0 +1,12 @@
+# ==============================================================================
+# LISTA DE AMIGOS OPERADORES (AUTO-OP) - MINECRAFT BEDROCK DEDICATED SERVER
+# ==============================================================================
+# Adicione abaixo o Gamertag (nome exato no Xbox/Minecraft) dos seus amigos
+# que devem receber privilegios de Operador.
+# Um nome por linha. Linhas com # sao ignoradas.
+# ==============================================================================
+
+# Exemplos:
+x12ultimatepass
+AerialTuba9051
+SaileOnurb
