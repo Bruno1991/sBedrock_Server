@@ -48,6 +48,12 @@ def start_server():
         print("\n[*] Servidor encerrado.")
 
 
+def manage_mods():
+    """Gerencia todos os mods e add-ons (Spikes, Avaritia, CobbleDrock)."""
+    script = WINDOWS_DIR / "gerenciar_mods.py"
+    subprocess.run([sys.executable, str(script)], cwd=str(WINDOWS_DIR))
+
+
 def manage_cobbledrock(action: str = "status"):
     """Gerencia CobbleDrock."""
     script = WINDOWS_DIR / "gerenciar_cobbledrock.py"
@@ -96,7 +102,7 @@ def interactive_menu():
         print("      ⛏ S_BEDROCK_SERVER: CANIVETE SUÍÇO DO MINECRAFT ⛏")
         print("=" * 65)
         print(" [1] Iniciar Servidor Bedrock (bedrock_server.exe)")
-        print(" [2] Gerenciar CobbleDrock (Status / Ativar / Desativar)")
+        print(" [2] Gerenciador de Mods e Add-ons (Spikes, Avaritia, CobbleDrock)")
         print(" [3] Conceder Privilégios de Operador (dar_op)")
         print(" [4] Resetar Mapa de Testes")
         print(" [5] Habilitar Conexão Local (Loopback Exemption)")
@@ -108,16 +114,7 @@ def interactive_menu():
         if choice == "1":
             start_server()
         elif choice == "2":
-            print("\n  [1] Ver status dos packs")
-            print("  [2] Ativar CobbleDrock")
-            print("  [3] Desativar CobbleDrock")
-            sub = input("Escolha (1-3): ").strip()
-            if sub == "1":
-                manage_cobbledrock("status")
-            elif sub == "2":
-                manage_cobbledrock("enable")
-            elif sub == "3":
-                manage_cobbledrock("disable")
+            manage_mods()
         elif choice == "3":
             gt = input("Gamertag do jogador (Enter para usar lista de amigos): ").strip()
             grant_operator(gamertag=gt if gt else None)
@@ -139,6 +136,7 @@ def interactive_menu():
 def main():
     parser = argparse.ArgumentParser(description="Canivete Suíço do Minecraft Bedrock Server")
     parser.add_argument("--start", action="store_true", help="Inicia o servidor")
+    parser.add_argument("--mods", action="store_true", help="Abre o gerenciador de mods e add-ons")
     parser.add_argument("--cobbledrock", choices=["status", "enable", "disable"], help="Gerencia o mod CobbleDrock")
     parser.add_argument("--op", type=str, help="Gamertag para conceder operador")
     parser.add_argument("--reset-map", action="store_true", help="Reseta o mapa de testes")
@@ -148,6 +146,8 @@ def main():
 
     if args.start:
         start_server()
+    elif args.mods:
+        manage_mods()
     elif args.cobbledrock:
         manage_cobbledrock(args.cobbledrock)
     elif args.op:
