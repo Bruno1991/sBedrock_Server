@@ -15,7 +15,7 @@ param (
 $ErrorActionPreference = "Stop"
 
 if (-not $ServerDir) {
-    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\server"))
+    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\server"))
 }
 
 $worldsDir = "$ServerDir\data\worlds"

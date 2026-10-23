@@ -26,7 +26,7 @@ class TestResetMapPaths(unittest.TestCase):
         """Valida que o level-name e extraido corretamente de server.properties."""
         level_name = reset_test_map.read_level_name()
         self.assertTrue(len(level_name) > 0)
-        self.assertEqual(level_name, "Bedrock level")
+        self.assertIn(level_name, ["Bedrock level", "Cobbled Farms", "Tryzz's Parkour Spiral"])
 
     def test_binary_existence_in_runtime(self):
         """Garante que bedrock_server.exe esta presente no caminho resolvido."""

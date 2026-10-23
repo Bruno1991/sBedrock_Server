@@ -108,7 +108,60 @@ MODS_CATALOG: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "spectrite": {
+        "name": "Spectrite Mod (Official Bedrock Port v1.7.0)",
+        "description": "Minerios raros arco-iris, armas lendarias (Legend Blade), armaduras cosmicas e ferramentas",
+        "bp": [
+            {
+                "pack_id": "2d81f271-2fa1-4423-ad9b-dd0e56f2a93d",
+                "name": "Spectrite BP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+        "rp": [
+            {
+                "pack_id": "98ba3890-0e46-4b56-9a6e-5892c4256682",
+                "name": "Spectrite RP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+    },
 }
+
+
+def list_available_worlds() -> List[str]:
+    """Lista todos os mundos presentes na pasta de mundos."""
+    if not WORLDS_DIR.exists():
+        return []
+    return [d.name for d in WORLDS_DIR.iterdir() if d.is_dir() and (d / "level.dat").exists()]
+
+
+def switch_active_world(level_name: str) -> bool:
+    """Muda o level-name ativo em server.properties."""
+    world_dir = WORLDS_DIR / level_name
+    if not world_dir.exists():
+        print(f"[ERRO] Mundo '{level_name}' nao existe em {WORLDS_DIR}")
+        return False
+    if not SERVER_PROPERTIES.exists():
+        print(f"[ERRO] server.properties nao encontrado em {SERVER_PROPERTIES}")
+        return False
+
+    content = SERVER_PROPERTIES.read_text(encoding="utf-8-sig")
+    lines = content.splitlines()
+    found = False
+    new_lines = []
+    for line in lines:
+        if line.strip().startswith("level-name="):
+            new_lines.append(f"level-name={level_name}")
+            found = True
+        else:
+            new_lines.append(line)
+    if not found:
+        new_lines.append(f"level-name={level_name}")
+
+    SERVER_PROPERTIES.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    print(f"[SUCESSO] Mundo ativo alterado para: '{level_name}'")
+    return True
 
 
 def read_level_name() -> str:
@@ -267,17 +320,19 @@ def disable_mod(mod_key: str, level_name: Optional[str] = None) -> bool:
     return True
 
 
-def print_full_status():
-    lvl = read_level_name()
+def print_full_status(level_name: Optional[str] = None):
+    lvl = level_name or read_level_name()
     pid = get_bds_pid()
     world_dir, bp_json, rp_json = get_world_paths(lvl)
+    worlds = list_available_worlds()
 
     print("\n" + "=" * 70)
     print("      STATUS DE MODS E ADD-ONS - MINECRAFT BEDROCK DEDICATED SERVER")
     print("=" * 70)
-    print(f" Servidor BDS:   {'ATIVO (PID: ' + str(pid) + ')' if pid else 'PARADO'}")
-    print(f" Mundo Ativo:    {lvl}")
-    print(f" Pasta do Mundo: {world_dir}")
+    print(f" Servidor BDS:       {'ATIVO (PID: ' + str(pid) + ')' if pid else 'PARADO'}")
+    print(f" Mundo Ativo:        {lvl}")
+    print(f" Pasta do Mundo:     {world_dir}")
+    print(f" Mundos Disponiveis: {', '.join(worlds)}")
     print("-" * 70)
 
     for key in MODS_CATALOG:
@@ -304,46 +359,76 @@ def print_full_status():
 
 def interactive_menu():
     while True:
-        print_full_status()
+        lvl = read_level_name()
+        print_full_status(lvl)
         print("Opcoes:")
         print(" [1] Ativar / Desativar More Spikes (Spiky Spikes)")
         print(" [2] Ativar / Desativar Avaritia: ULTIMATE")
-        print(" [3] Ativar / Desativar CobbleDrock")
-        print(" [4] Ativar Todos os Mods Compatíveis (Avaritia + More Spikes)")
-        print(" [5] Atualizar exibicao")
+        print(" [3] Ativar / Desativar Spectrite Mod")
+        print(" [4] Ativar / Desativar CobbleDrock")
+        print(" [5] Ativar Todos os Mods Compatíveis (Avaritia + Spikes + Spectrite)")
+        print(" [6] Alternar Mundo Ativo (Cobbled Farms / Spiral / Padrão)")
+        print(" [7] Ativar Cobbled Farms (Mundo Cobblemon c/ Add-ons)")
+        print(" [8] Atualizar exibicao")
         print(" [0] Voltar")
         print("-" * 70)
         try:
-            choice = input("Escolha (0-5): ").strip()
+            choice = input("Escolha (0-8): ").strip()
         except (KeyboardInterrupt, EOFError):
             break
 
         if choice == "1":
-            st = get_mod_status("spikes")
+            st = get_mod_status("spikes", lvl)
             if st["is_active"]:
-                disable_mod("spikes")
+                disable_mod("spikes", lvl)
             else:
-                enable_mod("spikes")
+                enable_mod("spikes", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "2":
-            st = get_mod_status("avaritia")
+            st = get_mod_status("avaritia", lvl)
             if st["is_active"]:
-                disable_mod("avaritia")
+                disable_mod("avaritia", lvl)
             else:
-                enable_mod("avaritia")
+                enable_mod("avaritia", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "3":
-            st = get_mod_status("cobbledrock")
+            st = get_mod_status("spectrite", lvl)
             if st["is_active"]:
-                disable_mod("cobbledrock")
+                disable_mod("spectrite", lvl)
             else:
-                enable_mod("cobbledrock")
+                enable_mod("spectrite", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "4":
-            enable_mod("avaritia")
-            enable_mod("spikes")
+            st = get_mod_status("cobbledrock", lvl)
+            if st["is_active"]:
+                disable_mod("cobbledrock", lvl)
+            else:
+                enable_mod("cobbledrock", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "5":
+            enable_mod("avaritia", lvl)
+            enable_mod("spikes", lvl)
+            enable_mod("spectrite", lvl)
+            input("\nPressione ENTER para continuar...")
+        elif choice == "6":
+            worlds = list_available_worlds()
+            print("\nMundos Disponíveis:")
+            for i, w in enumerate(worlds, 1):
+                marker = " (ATUAL)" if w == lvl else ""
+                print(f" [{i}] {w}{marker}")
+            try:
+                w_choice = input(f"Escolha o mundo (1-{len(worlds)}): ").strip()
+                if w_choice.isdigit() and 1 <= int(w_choice) <= len(worlds):
+                    switch_active_world(worlds[int(w_choice) - 1])
+            except Exception as e:
+                print(f"[!] Erro ao alternar: {e}")
+            input("\nPressione ENTER para continuar...")
+        elif choice == "7":
+            if switch_active_world("Cobbled Farms"):
+                enable_mod("cobbledrock", "Cobbled Farms")
+                print("[SUCESSO] Mundo alternado para 'Cobbled Farms' com CobbleDrock ativo!")
+            input("\nPressione ENTER para continuar...")
+        elif choice == "8":
             continue
         elif choice == "0":
             break
@@ -355,41 +440,77 @@ def interactive_menu():
 def main():
     parser = argparse.ArgumentParser(description="Gerenciador Central de Mods para Bedrock Server")
     parser.add_argument("--status", "-s", action="store_true", help="Exibe o status completo dos mods")
+    parser.add_argument("--world", help="Especifica o mundo a ser gerenciado (padrao: mundo ativo)")
     parser.add_argument("--spikes", choices=["enable", "disable", "status"], help="Gerencia More Spikes")
     parser.add_argument("--avaritia", choices=["enable", "disable", "status"], help="Gerencia Avaritia")
+    parser.add_argument("--spectrite", choices=["enable", "disable", "status"], help="Gerencia Spectrite Mod")
     parser.add_argument("--cobbledrock", choices=["enable", "disable", "status"], help="Gerencia CobbleDrock")
-    parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes juntos")
+    parser.add_argument("--cobbled-farms", choices=["activate", "status", "install"], help="Gerencia o mapa Cobbled Farms")
+    parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes + Spectrite juntos")
+    parser.add_argument("--switch-world", help="Altera o level-name ativo em server.properties")
+    parser.add_argument("--list-worlds", action="store_true", help="Lista todos os mundos instalados")
     args = parser.parse_args()
 
-    if args.status:
-        print_full_status()
+    target_world = args.world or read_level_name()
+
+    if args.list_worlds:
+        worlds = list_available_worlds()
+        print("Mundos instalados:")
+        for w in worlds:
+            active = " [ATIVO]" if w == target_world else ""
+            print(f" - {w}{active}")
+    elif args.switch_world:
+        switch_active_world(args.switch_world)
+    elif args.cobbled_farms:
+        if args.cobbled_farms == "activate":
+            if switch_active_world("Cobbled Farms"):
+                enable_mod("cobbledrock", "Cobbled Farms")
+                print("[SUCESSO] Cobbled Farms ativado com CobbleDrock!")
+        elif args.cobbled_farms == "status":
+            st = get_mod_status("cobbledrock", "Cobbled Farms")
+            is_active_world = read_level_name() == "Cobbled Farms"
+            print(f"Cobbled Farms: {'[MUNDO ATIVO]' if is_active_world else '[INATIVO]'}, CobbleDrock: {'[ATIVADO]' if st['is_active'] else '[DESATIVADO]'}")
+        elif args.cobbled_farms == "install":
+            import instalar_cobbled_farms
+            instalar_cobbled_farms.install_cobbled_farms(activate_as_current=True)
+    elif args.status:
+        print_full_status(target_world)
     elif args.spikes:
         if args.spikes == "enable":
-            enable_mod("spikes")
+            enable_mod("spikes", target_world)
         elif args.spikes == "disable":
-            disable_mod("spikes")
+            disable_mod("spikes", target_world)
         else:
-            st = get_mod_status("spikes")
-            print(f"More Spikes: {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
+            st = get_mod_status("spikes", target_world)
+            print(f"More Spikes ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.avaritia:
         if args.avaritia == "enable":
-            enable_mod("avaritia")
+            enable_mod("avaritia", target_world)
         elif args.avaritia == "disable":
-            disable_mod("avaritia")
+            disable_mod("avaritia", target_world)
         else:
-            st = get_mod_status("avaritia")
-            print(f"Avaritia: {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
+            st = get_mod_status("avaritia", target_world)
+            print(f"Avaritia ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
+    elif args.spectrite:
+        if args.spectrite == "enable":
+            enable_mod("spectrite", target_world)
+        elif args.spectrite == "disable":
+            disable_mod("spectrite", target_world)
+        else:
+            st = get_mod_status("spectrite", target_world)
+            print(f"Spectrite ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.cobbledrock:
         if args.cobbledrock == "enable":
-            enable_mod("cobbledrock")
+            enable_mod("cobbledrock", target_world)
         elif args.cobbledrock == "disable":
-            disable_mod("cobbledrock")
+            disable_mod("cobbledrock", target_world)
         else:
-            st = get_mod_status("cobbledrock")
-            print(f"CobbleDrock: {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
+            st = get_mod_status("cobbledrock", target_world)
+            print(f"CobbleDrock ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.enable_combo:
-        enable_mod("avaritia")
-        enable_mod("spikes")
+        enable_mod("avaritia", target_world)
+        enable_mod("spikes", target_world)
+        enable_mod("spectrite", target_world)
     else:
         interactive_menu()
 

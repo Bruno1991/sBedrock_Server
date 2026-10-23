@@ -23,6 +23,7 @@ class TestModsManager(unittest.TestCase):
         self.assertIn("spikes", gerenciar_mods.MODS_CATALOG)
         self.assertIn("avaritia", gerenciar_mods.MODS_CATALOG)
         self.assertIn("cobbledrock", gerenciar_mods.MODS_CATALOG)
+        self.assertIn("spectrite", gerenciar_mods.MODS_CATALOG)
 
         for key, mod in gerenciar_mods.MODS_CATALOG.items():
             self.assertIn("bp", mod)
@@ -45,6 +46,15 @@ class TestModsManager(unittest.TestCase):
         self.assertEqual(bp_uuid, "c0bf473f-12d4-4c5c-bc9b-2c24df1e6c07")
         self.assertEqual(rp_uuid, "d595877a-04d1-4187-b56f-f81e7b015db6")
 
+    def test_spectrite_pack_uuids(self):
+        """Garante que os UUIDs do Spectrite conferem com o manifesto oficial v1.0.0."""
+        spectrite_mod = gerenciar_mods.MODS_CATALOG["spectrite"]
+        bp_uuid = spectrite_mod["bp"][0]["pack_id"]
+        rp_uuid = spectrite_mod["rp"][0]["pack_id"]
+
+        self.assertEqual(bp_uuid, "2d81f271-2fa1-4423-ad9b-dd0e56f2a93d")
+        self.assertEqual(rp_uuid, "98ba3890-0e46-4b56-9a6e-5892c4256682")
+
     def test_enable_disable_isolation(self):
         """Valida que ativar e desativar mods preserva outros add-ons sem corrupcao."""
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -58,23 +68,37 @@ class TestModsManager(unittest.TestCase):
             bp_json.write_text(json.dumps(initial_bp), encoding="utf-8")
             rp_json.write_text(json.dumps(initial_rp), encoding="utf-8")
 
-            # Simulando adicao do spikes
+            # Simulando adicao do spikes e spectrite
             bps = gerenciar_mods.load_json_file(bp_json)
             rps = gerenciar_mods.load_json_file(rp_json)
             spikes = gerenciar_mods.MODS_CATALOG["spikes"]
+            spectrite = gerenciar_mods.MODS_CATALOG["spectrite"]
 
             for p in spikes["bp"]:
                 bps.append({"pack_id": p["pack_id"], "version": p["version"]})
             for p in spikes["rp"]:
                 rps.append({"pack_id": p["pack_id"], "version": p["version"]})
 
+            for p in spectrite["bp"]:
+                bps.append({"pack_id": p["pack_id"], "version": p["version"]})
+            for p in spectrite["rp"]:
+                rps.append({"pack_id": p["pack_id"], "version": p["version"]})
+
             gerenciar_mods.save_json_file(bp_json, bps)
             gerenciar_mods.save_json_file(rp_json, rps)
 
             loaded_bps = gerenciar_mods.load_json_file(bp_json)
-            self.assertEqual(len(loaded_bps), 2)
+            self.assertEqual(len(loaded_bps), 3)
             self.assertEqual(loaded_bps[0]["pack_id"], "5ad3bb44-8328-448e-8959-e7e0c64be76e")
             self.assertEqual(loaded_bps[1]["pack_id"], "c0bf473f-12d4-4c5c-bc9b-2c24df1e6c07")
+            self.assertEqual(loaded_bps[2]["pack_id"], "2d81f271-2fa1-4423-ad9b-dd0e56f2a93d")
+
+    def test_list_available_worlds(self):
+        """Verifica que o mundo principal, Tryzz's Parkour Spiral e Cobbled Farms sao descobertos."""
+        worlds = gerenciar_mods.list_available_worlds()
+        self.assertIn("Bedrock level", worlds)
+        self.assertIn("Tryzz's Parkour Spiral", worlds)
+        self.assertIn("Cobbled Farms", worlds)
 
 
 if __name__ == "__main__":

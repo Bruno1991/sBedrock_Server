@@ -16,7 +16,7 @@ param (
 $ErrorActionPreference = "Stop"
 
 if (-not $ServerDir) {
-    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\server"))
+    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\server"))
 }
 if (-not $TemplateDir) {
     $TemplateDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\templates"))

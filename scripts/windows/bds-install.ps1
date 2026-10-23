@@ -16,7 +16,7 @@ param (
 $ErrorActionPreference = "Stop"
 
 if (-not $ServerDir) {
-    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\server"))
+    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\server"))
 }
 
 $officialUrl = "https://www.minecraft.net/bedrockdedicatedserver/bin-win/bedrock-server-$Version.zip"

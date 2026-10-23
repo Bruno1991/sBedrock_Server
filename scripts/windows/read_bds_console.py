@@ -61,4 +61,7 @@ for y in range(start_y, cursor_y + 1):
 kernel32.FreeConsole()
 
 for l in lines:
-    print(l)
+    try:
+        print(l)
+    except Exception:
+        print(l.encode("ascii", errors="replace").decode("ascii"))

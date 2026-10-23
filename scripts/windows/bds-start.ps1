@@ -13,7 +13,7 @@ param (
 )
 
 if (-not $ServerDir) {
-    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\server"))
+    $ServerDir = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\server"))
 }
 
 $runtimeDir = "$ServerDir\runtime"
@@ -67,7 +67,7 @@ Write-Host " Diretório:  $runtimeDir" -ForegroundColor Cyan
 Write-Host " IP Local:   $ipDisplay" -ForegroundColor White
 Write-Host " Porta UDP:  $port" -ForegroundColor White
 if (-not $loopbackCheck) {
-    Write-Host " Dica UWP:   Para jogar neste PC, execute: .\windows\habilitar-conexao-local.bat" -ForegroundColor Yellow
+    Write-Host " Dica UWP:   Para jogar neste PC, execute: .\windows\enable-loopback.ps1" -ForegroundColor Yellow
 }
 Write-Host " Parada:     Para encerrar de forma limpa, digite 'stop' no console." -ForegroundColor Yellow
 Write-Host "======================================================================" -ForegroundColor Green
