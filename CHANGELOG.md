@@ -51,4 +51,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - `windows/setup-firewall.ps1`: Configuração automatizada de regras no Firewall do Windows Defender (19132/udp).
   - `windows/bds-backup.ps1` e `windows/bds-restore.ps1`: Procedimentos de backup comprimido (.zip) e restauração no Windows.
   - `windows/bds-healthcheck.ps1`: Smoke test de verificação de processo, socket UDP e loopback no Windows.
+- **Expansão de Add-ons e Gerência Inteligente (Fase 5)**:
+  - `windows/build_lucky_addon.py`: Construtor automatizado do Behavior Pack e Resource Pack do Lucky Block com scripts `@minecraft/server`, catálogo rico de eventos da sorte, texturas 16x16 douradas, ícones e receitas de bancada.
+  - `windows/instalar_lucky_oneblock.py`: Instalador e conversor do mapa oficial do CurseForge (872580 - *el_this_boy*) via Chunker CLI, metadados LevelDB, e ativação com 1 clique.
+  - `windows/server_manager.py`: Módulo inteligente de gerenciamento de backend fornecendo telemetria em tempo real (RAM, CPU, Uptime, Socket UDP), parada graciosa com flush de LevelDB, reinício seguro, descoberta dinâmica de mundos, snapshots em ZIP, central CurseForge e diagnóstico profundo com auto-reparo.
+  - `windows/cli.py`: Utilitário CLI unificado refatorado com interface moderna, menu rico em telemetria, atalhos de terminal (`--lucky-oneblock`, `--healthcheck`, `--backup-world`, `--cmd`, `--stop`, `--restart`) e 100% de compatibilidade retroativa.
+  - `tests/test_lucky_oneblock.py` e `tests/test_server_manager.py`: Suíte expandida para 49 testes unitários e de integração com 100% de aprovação.
+
+
 

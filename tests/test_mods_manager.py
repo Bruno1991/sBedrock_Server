@@ -99,6 +99,7 @@ class TestModsManager(unittest.TestCase):
         self.assertIn("Bedrock level", worlds)
         self.assertIn("Tryzz's Parkour Spiral", worlds)
         self.assertIn("Cobbled Farms", worlds)
+        self.assertIn("Lucky OneBlock", worlds)
 
 
 if __name__ == "__main__":

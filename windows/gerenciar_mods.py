@@ -126,6 +126,24 @@ MODS_CATALOG: Dict[str, Dict[str, Any]] = {
             }
         ],
     },
+    "luckyblock": {
+        "name": "Lucky Block & OneBlock Engine (v1.0.0)",
+        "description": "Motor OneBlock interativo com bloco lucky:lucky_block, drops aleatorios e protecao anti-void",
+        "bp": [
+            {
+                "pack_id": "59aa09c5-0a2c-4134-8481-725801fba963",
+                "name": "Lucky Block BP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+        "rp": [
+            {
+                "pack_id": "60910110-474e-41b4-aa72-68e06a917819",
+                "name": "Lucky Block RP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+    },
 }
 
 
@@ -366,14 +384,16 @@ def interactive_menu():
         print(" [2] Ativar / Desativar Avaritia: ULTIMATE")
         print(" [3] Ativar / Desativar Spectrite Mod")
         print(" [4] Ativar / Desativar CobbleDrock")
-        print(" [5] Ativar Todos os Mods Compatíveis (Avaritia + Spikes + Spectrite)")
-        print(" [6] Alternar Mundo Ativo (Cobbled Farms / Spiral / Padrão)")
-        print(" [7] Ativar Cobbled Farms (Mundo Cobblemon c/ Add-ons)")
-        print(" [8] Atualizar exibicao")
+        print(" [5] Ativar / Desativar Lucky Block & OneBlock Engine")
+        print(" [6] Ativar Todos os Mods Compatíveis (Avaritia + Spikes + Spectrite + Lucky Block)")
+        print(" [7] Alternar Mundo Ativo (Cobbled Farms / Lucky OneBlock / Spiral / Padrão)")
+        print(" [8] Ativar Lucky OneBlock (Mundo OneBlock c/ Lucky Block)")
+        print(" [9] Ativar Cobbled Farms (Mundo Cobblemon c/ Add-ons)")
+        print(" [R] Atualizar exibicao")
         print(" [0] Voltar")
         print("-" * 70)
         try:
-            choice = input("Escolha (0-8): ").strip()
+            choice = input("Escolha: ").strip().lower()
         except (KeyboardInterrupt, EOFError):
             break
 
@@ -406,11 +426,19 @@ def interactive_menu():
                 enable_mod("cobbledrock", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "5":
+            st = get_mod_status("luckyblock", lvl)
+            if st["is_active"]:
+                disable_mod("luckyblock", lvl)
+            else:
+                enable_mod("luckyblock", lvl)
+            input("\nPressione ENTER para continuar...")
+        elif choice == "6":
             enable_mod("avaritia", lvl)
             enable_mod("spikes", lvl)
             enable_mod("spectrite", lvl)
+            enable_mod("luckyblock", lvl)
             input("\nPressione ENTER para continuar...")
-        elif choice == "6":
+        elif choice == "7":
             worlds = list_available_worlds()
             print("\nMundos Disponíveis:")
             for i, w in enumerate(worlds, 1):
@@ -423,12 +451,20 @@ def interactive_menu():
             except Exception as e:
                 print(f"[!] Erro ao alternar: {e}")
             input("\nPressione ENTER para continuar...")
-        elif choice == "7":
+        elif choice == "8":
+            if "Lucky OneBlock" in list_available_worlds():
+                if switch_active_world("Lucky OneBlock"):
+                    enable_mod("luckyblock", "Lucky OneBlock")
+                    print("[SUCESSO] Mundo alternado para 'Lucky OneBlock' com Lucky Block ativo!")
+            else:
+                print("[!] 'Lucky OneBlock' nao esta instalado. Execute instalar_lucky_oneblock.py.")
+            input("\nPressione ENTER para continuar...")
+        elif choice == "9":
             if switch_active_world("Cobbled Farms"):
                 enable_mod("cobbledrock", "Cobbled Farms")
                 print("[SUCESSO] Mundo alternado para 'Cobbled Farms' com CobbleDrock ativo!")
             input("\nPressione ENTER para continuar...")
-        elif choice == "8":
+        elif choice == "r":
             continue
         elif choice == "0":
             break
@@ -445,8 +481,10 @@ def main():
     parser.add_argument("--avaritia", choices=["enable", "disable", "status"], help="Gerencia Avaritia")
     parser.add_argument("--spectrite", choices=["enable", "disable", "status"], help="Gerencia Spectrite Mod")
     parser.add_argument("--cobbledrock", choices=["enable", "disable", "status"], help="Gerencia CobbleDrock")
+    parser.add_argument("--luckyblock", choices=["enable", "disable", "status"], help="Gerencia Lucky Block & OneBlock Engine")
+    parser.add_argument("--lucky-oneblock", choices=["activate", "status", "install"], help="Gerencia o mapa Lucky OneBlock")
     parser.add_argument("--cobbled-farms", choices=["activate", "status", "install"], help="Gerencia o mapa Cobbled Farms")
-    parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes + Spectrite juntos")
+    parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes + Spectrite + Lucky Block")
     parser.add_argument("--switch-world", help="Altera o level-name ativo em server.properties")
     parser.add_argument("--list-worlds", action="store_true", help="Lista todos os mundos instalados")
     args = parser.parse_args()
@@ -461,6 +499,18 @@ def main():
             print(f" - {w}{active}")
     elif args.switch_world:
         switch_active_world(args.switch_world)
+    elif args.lucky_oneblock:
+        if args.lucky_oneblock == "activate":
+            if switch_active_world("Lucky OneBlock"):
+                enable_mod("luckyblock", "Lucky OneBlock")
+                print("[SUCESSO] Lucky OneBlock ativado com Lucky Block Engine!")
+        elif args.lucky_oneblock == "status":
+            st = get_mod_status("luckyblock", "Lucky OneBlock")
+            is_active_world = read_level_name() == "Lucky OneBlock"
+            print(f"Lucky OneBlock: {'[MUNDO ATIVO]' if is_active_world else '[INATIVO]'}, Lucky Block: {'[ATIVADO]' if st['is_active'] else '[DESATIVADO]'}")
+        elif args.lucky_oneblock == "install":
+            import instalar_lucky_oneblock
+            instalar_lucky_oneblock.install_lucky_oneblock(activate_as_current=True)
     elif args.cobbled_farms:
         if args.cobbled_farms == "activate":
             if switch_active_world("Cobbled Farms"):
@@ -507,10 +557,19 @@ def main():
         else:
             st = get_mod_status("cobbledrock", target_world)
             print(f"CobbleDrock ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
+    elif args.luckyblock:
+        if args.luckyblock == "enable":
+            enable_mod("luckyblock", target_world)
+        elif args.luckyblock == "disable":
+            disable_mod("luckyblock", target_world)
+        else:
+            st = get_mod_status("luckyblock", target_world)
+            print(f"Lucky Block ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.enable_combo:
         enable_mod("avaritia", target_world)
         enable_mod("spikes", target_world)
         enable_mod("spectrite", target_world)
+        enable_mod("luckyblock", target_world)
     else:
         interactive_menu()
 

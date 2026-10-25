@@ -46,6 +46,26 @@ class TestUnifiedCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Cobbled Farms ativado", result.stdout)
 
+    def test_cli_lucky_oneblock_shortcut(self):
+        """Valida que o atalho --lucky-oneblock ativa o mundo e integra o Lucky Block Engine."""
+        result = subprocess.run([sys.executable, str(CLI_PY), "--lucky-oneblock"], capture_output=True, text=True, cwd=str(WINDOWS_DIR))
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Lucky OneBlock ativado", result.stdout)
+
+    def test_cli_healthcheck(self):
+        """Valida execucao de cli.py --healthcheck exibindo auditoria de saude."""
+        result = subprocess.run([sys.executable, str(CLI_PY), "--healthcheck"], capture_output=True, text=True, cwd=str(WINDOWS_DIR), encoding="utf-8", errors="replace")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Auditoria", result.stdout)
+        self.assertIn("PASS", result.stdout)
+
+    def test_cli_list_backups(self):
+        """Valida execucao de cli.py --list-backups listando arquivos de backup."""
+        result = subprocess.run([sys.executable, str(CLI_PY), "--list-backups"], capture_output=True, text=True, cwd=str(WINDOWS_DIR))
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Backups de mundos:", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
+
