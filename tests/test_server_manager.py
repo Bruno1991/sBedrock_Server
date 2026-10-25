@@ -74,6 +74,18 @@ class TestServerManager(unittest.TestCase):
         ok, msg = sm.install_from_curseforge(url, activate=False)
         self.assertTrue(ok, f"Roteamento do Lucky OneBlock falhou: {msg}")
 
+    def test_disable_all_mods(self):
+        """Valida que disable_all_mods limpa todos os pacotes deixando o mundo vanilla."""
+        ok, msg = sm.disable_all_mods("Lucky OneBlock")
+        self.assertTrue(ok, f"disable_all_mods falhou: {msg}")
+        self.assertIn("vanilla", msg)
+
+        # Checa status
+        st = sm.get_server_status()
+        # Se Lucky OneBlock for o ativo, nao deve ter active_mods
+        if st["active_world"] == "Lucky OneBlock":
+            self.assertEqual(len(st["active_mods"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

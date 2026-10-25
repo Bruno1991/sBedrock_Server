@@ -182,7 +182,7 @@ def attach_lucky_addon_to_world(world_dir: Path) -> None:
     print(f"[+] Add-on Lucky Block vinculado ao mundo '{TARGET_WORLD_NAME}'.")
 
 
-def install_lucky_oneblock(activate_as_current: bool = False, force_download: bool = False) -> bool:
+def install_lucky_oneblock(activate_as_current: bool = False, force_download: bool = False, enable_addon: bool = False) -> bool:
     """Executa o processo de ponta a ponta para baixar, converter e instalar o Lucky OneBlock."""
     print("\n" + "=" * 65)
     print("      INSTALADOR OFICIAL: LUCKY ONEBLOCK PARA BEDROCK SERVER")
@@ -232,8 +232,13 @@ def install_lucky_oneblock(activate_as_current: bool = False, force_download: bo
 
         setup_world_metadata(TARGET_WORLD_DIR)
 
-    # Vincular Add-on Lucky Block
-    attach_lucky_addon_to_world(TARGET_WORLD_DIR)
+    # Por padrao todos os mods ficam desativados para o usuario ativar os que desejar
+    if enable_addon:
+        attach_lucky_addon_to_world(TARGET_WORLD_DIR)
+    else:
+        (TARGET_WORLD_DIR / "world_behavior_packs.json").write_text("[]\n", encoding="utf-8")
+        (TARGET_WORLD_DIR / "world_resource_packs.json").write_text("[]\n", encoding="utf-8")
+        print(f"[+] Mundo '{TARGET_WORLD_NAME}' configurado com TODOS OS MODS DESATIVADOS por padrão.")
 
     if activate_as_current and gerenciar_mods is not None:
         print(f"[*] Configurando '{TARGET_WORLD_NAME}' como mundo ativo no servidor...")
@@ -242,7 +247,7 @@ def install_lucky_oneblock(activate_as_current: bool = False, force_download: bo
     print("\n" + "=" * 65)
     print(" [SUCESSO] Lucky OneBlock instalado e configurado com exito!")
     print(f" Localizacao: {TARGET_WORLD_DIR}")
-    print(" Motor ativo: Lucky Block & OneBlock Engine v1.0.0")
+    print(f" Estado de Add-ons: {'Lucky Block Engine [ATIVADO]' if enable_addon else '[TODOS DESATIVADOS POR PADRAO]'}")
     print("=" * 65 + "\n")
     return True
 
@@ -251,9 +256,14 @@ def main():
     parser = argparse.ArgumentParser(description="Instalador e Conversor do Lucky OneBlock para Bedrock")
     parser.add_argument("--activate", action="store_true", help="Ativa Lucky OneBlock como o mundo ativo no BDS")
     parser.add_argument("--force-download", action="store_true", help="Forca o download mesmo se houver cache local")
+    parser.add_argument("--with-addon", action="store_true", help="Ativa o add-on Lucky Block imediatamente na instalacao")
     args = parser.parse_args()
 
-    success = install_lucky_oneblock(activate_as_current=args.activate, force_download=args.force_download)
+    success = install_lucky_oneblock(
+        activate_as_current=args.activate,
+        force_download=args.force_download,
+        enable_addon=args.with_addon,
+    )
     sys.exit(0 if success else 1)
 
 

@@ -338,6 +338,20 @@ def disable_mod(mod_key: str, level_name: Optional[str] = None) -> bool:
     return True
 
 
+def disable_all_mods(level_name: Optional[str] = None) -> bool:
+    """Desativa todos os mods e add-ons no mundo informado ou ativo, deixando-o 100% vanilla."""
+    world_dir, bp_json, rp_json = get_world_paths(level_name)
+    if not world_dir.exists():
+        print(f"[ERRO] Pasta do mundo nao encontrada: {world_dir}")
+        return False
+
+    create_backup_of_packs(world_dir)
+    save_json_file(bp_json, [])
+    save_json_file(rp_json, [])
+    print(f"[SUCESSO] Todos os mods foram desativados no mundo '{level_name or read_level_name()}'. Mundo 100% vanilla!")
+    return True
+
+
 def print_full_status(level_name: Optional[str] = None):
     lvl = level_name or read_level_name()
     pid = get_bds_pid()
@@ -386,9 +400,10 @@ def interactive_menu():
         print(" [4] Ativar / Desativar CobbleDrock")
         print(" [5] Ativar / Desativar Lucky Block & OneBlock Engine")
         print(" [6] Ativar Todos os Mods Compatíveis (Avaritia + Spikes + Spectrite + Lucky Block)")
+        print(" [D] Desativar TODOS os Mods (Deixar Mundo 100% Vanilla / Limpo)")
         print(" [7] Alternar Mundo Ativo (Cobbled Farms / Lucky OneBlock / Spiral / Padrão)")
-        print(" [8] Ativar Lucky OneBlock (Mundo OneBlock c/ Lucky Block)")
-        print(" [9] Ativar Cobbled Farms (Mundo Cobblemon c/ Add-ons)")
+        print(" [8] Ativar Lucky OneBlock (Mundo OneBlock)")
+        print(" [9] Ativar Cobbled Farms (Mundo Cobblemon)")
         print(" [R] Atualizar exibicao")
         print(" [0] Voltar")
         print("-" * 70)
@@ -438,6 +453,9 @@ def interactive_menu():
             enable_mod("spectrite", lvl)
             enable_mod("luckyblock", lvl)
             input("\nPressione ENTER para continuar...")
+        elif choice == "d":
+            disable_all_mods(lvl)
+            input("\nPressione ENTER para continuar...")
         elif choice == "7":
             worlds = list_available_worlds()
             print("\nMundos Disponíveis:")
@@ -454,15 +472,13 @@ def interactive_menu():
         elif choice == "8":
             if "Lucky OneBlock" in list_available_worlds():
                 if switch_active_world("Lucky OneBlock"):
-                    enable_mod("luckyblock", "Lucky OneBlock")
-                    print("[SUCESSO] Mundo alternado para 'Lucky OneBlock' com Lucky Block ativo!")
+                    print("[SUCESSO] Mundo alternado para 'Lucky OneBlock'!")
             else:
                 print("[!] 'Lucky OneBlock' nao esta instalado. Execute instalar_lucky_oneblock.py.")
             input("\nPressione ENTER para continuar...")
         elif choice == "9":
             if switch_active_world("Cobbled Farms"):
-                enable_mod("cobbledrock", "Cobbled Farms")
-                print("[SUCESSO] Mundo alternado para 'Cobbled Farms' com CobbleDrock ativo!")
+                print("[SUCESSO] Mundo alternado para 'Cobbled Farms'!")
             input("\nPressione ENTER para continuar...")
         elif choice == "r":
             continue
@@ -485,6 +501,7 @@ def main():
     parser.add_argument("--lucky-oneblock", choices=["activate", "status", "install"], help="Gerencia o mapa Lucky OneBlock")
     parser.add_argument("--cobbled-farms", choices=["activate", "status", "install"], help="Gerencia o mapa Cobbled Farms")
     parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes + Spectrite + Lucky Block")
+    parser.add_argument("--disable-all", action="store_true", help="Desativa todos os mods no mundo especificado ou ativo (modo vanilla limpo)")
     parser.add_argument("--switch-world", help="Altera o level-name ativo em server.properties")
     parser.add_argument("--list-worlds", action="store_true", help="Lista todos os mundos instalados")
     args = parser.parse_args()
@@ -497,6 +514,8 @@ def main():
         for w in worlds:
             active = " [ATIVO]" if w == target_world else ""
             print(f" - {w}{active}")
+    elif args.disable_all:
+        disable_all_mods(target_world)
     elif args.switch_world:
         switch_active_world(args.switch_world)
     elif args.lucky_oneblock:

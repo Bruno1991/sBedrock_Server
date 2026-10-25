@@ -223,10 +223,11 @@ def manage_worlds():
 
         print("-" * 70)
         print(" Ações Rápidas:")
-        print("  [L] Ativar 'Lucky OneBlock' (Mapa OneBlock c/ Lucky Block Add-on)")
-        print("  [C] Ativar 'Cobbled Farms' (Mapa Cobblemon c/ CobbleDrock)")
+        print("  [L] Ativar 'Lucky OneBlock' (Mapa OneBlock)")
+        print("  [C] Ativar 'Cobbled Farms' (Mapa Cobblemon)")
         print("  [P] Ativar 'Bedrock level' (Mundo Sobrevivência Padrão)")
         print("  [S] Ativar 'Tryzz\\'s Parkour Spiral' (Mapa de Desafio)")
+        print("  [D] Desativar TODOS os Mods no Mundo Ativo (Deixar Vanilla / Limpo)")
         print("  [B] Fazer Backup do Mundo Ativo Agora (Snapshot ZIP)")
         print("  [R] Ver Backups Existentes")
         print("  [0] Voltar ao Menu Principal")
@@ -272,6 +273,14 @@ def manage_worlds():
                 switch_active_world_smart("Tryzz's Parkour Spiral")
             else:
                 print("\n[!] Mundo 'Tryzz\\'s Parkour Spiral' nao encontrado.")
+            input("\nPressione ENTER para continuar...")
+
+        elif choice == "d":
+            if sm is not None:
+                ok, msg = sm.disable_all_mods()
+                print(f"\n[{'SUCESSO' if ok else 'ERRO'}] {msg}")
+            else:
+                gerenciar_mods.disable_all_mods()
             input("\nPressione ENTER para continuar...")
 
         elif choice == "b":
@@ -328,12 +337,7 @@ def switch_active_world_smart(world_name: str) -> bool:
         print(f"\n[{'SUCESSO' if ok else 'ERRO'}] {msg}")
         return ok
     else:
-        ok = switch_active_world(world_name)
-        if ok and world_name == "Lucky OneBlock":
-            enable_mod("luckyblock", "Lucky OneBlock")
-        elif ok and world_name == "Cobbled Farms":
-            enable_mod("cobbledrock", "Cobbled Farms")
-        return ok
+        return switch_active_world(world_name)
 
 
 def install_lucky_oneblock_flow(activate: bool = True):
@@ -576,6 +580,7 @@ def main():
     parser.add_argument("--worlds", action="store_true", help="[3] Abre o gerenciador de mundos e mapas")
     parser.add_argument("--world", type=str, help="Define o mundo ativo em server.properties")
     parser.add_argument("--list-worlds", action="store_true", help="Lista todos os mundos instalados")
+    parser.add_argument("--disable-all", action="store_true", help="Desativa todos os mods no mundo ativo ou especificado (modo vanilla limpo)")
     parser.add_argument("--backup-world", nargs="?", const="", help="Gera backup ZIP do mundo informado ou ativo")
     parser.add_argument("--list-backups", action="store_true", help="Lista os backups de mundos arquivados")
 
@@ -651,6 +656,13 @@ def main():
         for w in worlds:
             active = " [ATIVO]" if w == current else ""
             print(f" - {w}{active}")
+    elif args.disable_all:
+        target = args.world if args.world else None
+        if sm is not None:
+            ok, msg = sm.disable_all_mods(target)
+            print(f"[{'SUCESSO' if ok else 'ERRO'}] {msg}")
+        else:
+            gerenciar_mods.disable_all_mods(target)
     elif args.backup_world is not None:
         target = args.backup_world if args.backup_world else None
         if sm is not None:

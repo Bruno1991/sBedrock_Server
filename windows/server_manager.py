@@ -328,14 +328,6 @@ def switch_world(level_name: str, auto_restart: bool = False) -> Tuple[bool, str
             new_lines.append(f"level-name={level_name}")
         SERVER_PROPERTIES.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
 
-    # Associacao inteligente de Add-ons oficiais
-    if level_name == "Lucky OneBlock":
-        if gerenciar_mods is not None:
-            gerenciar_mods.enable_mod("luckyblock", "Lucky OneBlock")
-    elif level_name == "Cobbled Farms":
-        if gerenciar_mods is not None:
-            gerenciar_mods.enable_mod("cobbledrock", "Cobbled Farms")
-
     msg = f"Mundo ativo alterado para '{level_name}' com sucesso!"
     pid = get_bds_pid()
     if pid:
@@ -346,6 +338,27 @@ def switch_world(level_name: str, auto_restart: bool = False) -> Tuple[bool, str
             msg += " [AVISO: O servidor BDS esta ativo. Reinicie-o para carregar o novo mundo]."
 
     return True, msg
+
+
+def disable_all_mods(world_name: Optional[str] = None) -> Tuple[bool, str]:
+    """Desativa todos os mods e add-ons no mundo informado ou ativo, tornando-o 100% vanilla."""
+    wname = world_name or get_active_world_name()
+    world_dir = WORLDS_DIR / wname
+    if not world_dir.is_dir():
+        return False, f"Diretorio do mundo '{wname}' nao encontrado."
+
+    if gerenciar_mods is not None:
+        ok = gerenciar_mods.disable_all_mods(wname)
+        if ok:
+            return True, f"Todos os mods desativados no mundo '{wname}'. Mundo 100% vanilla."
+        return False, f"Falha ao desativar mods no mundo '{wname}'."
+
+    bp_json = world_dir / "world_behavior_packs.json"
+    rp_json = world_dir / "world_resource_packs.json"
+    bp_json.write_text("[]\n", encoding="utf-8")
+    rp_json.write_text("[]\n", encoding="utf-8")
+    return True, f"Todos os mods desativados no mundo '{wname}'. Mundo 100% vanilla."
+
 
 
 def backup_world(world_name: Optional[str] = None) -> Tuple[bool, str]:

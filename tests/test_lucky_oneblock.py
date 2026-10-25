@@ -63,12 +63,22 @@ class TestLuckyOneBlockIntegration(unittest.TestCase):
         self.assertEqual(bp_manifest["header"]["uuid"], bla.BP_UUID)
         self.assertEqual(rp_manifest["header"]["uuid"], bla.RP_UUID)
 
-    def test_lucky_block_active_in_world(self):
-        """Valida que o UUID do Lucky Block esta ativo em world_behavior_packs.json do Lucky OneBlock."""
-        bp_json = self.world_dir / "world_behavior_packs.json"
-        bps = gerenciar_mods.load_json_file(bp_json)
-        bp_ids = {entry.get("pack_id") for entry in bps if isinstance(entry, dict)}
-        self.assertIn(bla.BP_UUID, bp_ids, "O pack ID do Lucky Block BP deve estar no world_behavior_packs.json")
+    def test_lucky_block_default_disabled_and_activation_flow(self):
+        """Garante que por padrao os mods estao desativados e que a ativacao/desativacao e manual."""
+        # Estado padrao: desativado
+        gerenciar_mods.disable_all_mods("Lucky OneBlock")
+        status_before = gerenciar_mods.get_mod_status("luckyblock", "Lucky OneBlock")
+        self.assertFalse(status_before["is_active"], "Por padrao Lucky Block deve iniciar DESATIVADO")
+
+        # Ativa manualmente
+        self.assertTrue(gerenciar_mods.enable_mod("luckyblock", "Lucky OneBlock"))
+        status_active = gerenciar_mods.get_mod_status("luckyblock", "Lucky OneBlock")
+        self.assertTrue(status_active["is_active"], "Lucky Block deve constar como ATIVADO apos enable_mod")
+
+        # Retorna ao padrao desativado
+        self.assertTrue(gerenciar_mods.disable_all_mods("Lucky OneBlock"))
+        status_after = gerenciar_mods.get_mod_status("luckyblock", "Lucky OneBlock")
+        self.assertFalse(status_after["is_active"], "Deve retornar a 100% DESATIVADO apos disable_all_mods")
 
     def test_catalog_contains_luckyblock(self):
         """Garante que MODS_CATALOG contem a definicao do Lucky Block."""
