@@ -95,11 +95,14 @@ def get_server_status() -> Dict[str, Any]:
 
     installed_worlds = list_available_worlds()
     active_mods = []
+    worlds_matrix = []
     if gerenciar_mods is not None:
         for mod_key in gerenciar_mods.MODS_CATALOG:
             st = gerenciar_mods.get_mod_status(mod_key, active_world)
             if st.get("is_active"):
                 active_mods.append(st.get("name", mod_key))
+        if hasattr(gerenciar_mods, "get_all_worlds_mods_matrix"):
+            worlds_matrix = gerenciar_mods.get_all_worlds_mods_matrix()
 
     return {
         "running": running,
@@ -111,6 +114,7 @@ def get_server_status() -> Dict[str, Any]:
         "active_world": active_world,
         "total_worlds": len(installed_worlds),
         "active_mods": active_mods,
+        "worlds_matrix": worlds_matrix,
     }
 
 
@@ -289,6 +293,11 @@ def list_worlds_detailed() -> List[Dict[str, Any]]:
             except Exception:
                 pass
 
+        # Obtem mods ativos deste mundo especifico
+        world_mods = []
+        if gerenciar_mods is not None and hasattr(gerenciar_mods, "get_active_mods_names"):
+            world_mods = gerenciar_mods.get_active_mods_names(d.name)
+
         results.append({
             "name": d.name,
             "path": str(d),
@@ -298,6 +307,7 @@ def list_worlds_detailed() -> List[Dict[str, Any]]:
             "has_icon": (d / "world_icon.jpeg").exists() or (d / "world_icon.png").exists(),
             "bp_count": bp_count,
             "rp_count": rp_count,
+            "active_mods": world_mods,
         })
     return results
 
@@ -449,6 +459,9 @@ def sync_packs_to_runtime() -> bool:
 CURSEFORGE_SLUG_MAP = {
     "lucky-oneblock": "872580",
     "cobbled-farms": "924311",
+    "romhenris-ruby-ore": "rubyore",
+    "the-ruby-ore": "rubyore",
+    "rubyore": "rubyore",
 }
 
 
@@ -456,10 +469,10 @@ def install_from_curseforge(query_or_url: str, activate: bool = True) -> Tuple[b
     """Instalador universal: aceita URL, slug ou ID de projeto do CurseForge."""
     raw = query_or_url.strip()
 
-    # Extrai o slug ou ID de URLs como https://www.curseforge.com/minecraft/worlds/lucky-oneblock
+    # Extrai o slug ou ID de URLs como https://www.curseforge.com/minecraft/mc-mods/romhenris-ruby-ore
     if "curseforge.com" in raw:
         clean = raw.split("?")[0].rstrip("/")
-        slug = clean.split("/")[-1]
+        slug = clean.split("/")[-1].lower()
     else:
         slug = raw.lower()
 
@@ -476,6 +489,13 @@ def install_from_curseforge(query_or_url: str, activate: bool = True) -> Tuple[b
         if ok:
             return True, "Cobbled Farms instalado e configurado com sucesso!"
         return False, "Falha durante a instalacao do Cobbled Farms."
+
+    if slug in ["romhenris-ruby-ore", "the-ruby-ore", "rubyore", "the_ruby_ore", "romhenri-ruby-ore"]:
+        import instalar_ruby_ore
+        ok = instalar_ruby_ore.install_ruby_ore(activate_as_current=activate)
+        if ok:
+            return True, "The Ruby Ore (romhenri) instalado e configurado com sucesso!"
+        return False, "Falha durante a instalacao do Ruby Ore."
 
     return False, f"Slug ou projeto CurseForge '{raw}' nao possui receita de conversao pre-definida."
 

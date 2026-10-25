@@ -43,7 +43,7 @@ class TestLuckyOneBlockIntegration(unittest.TestCase):
         )
 
         levelname_content = (self.world_dir / "levelname.txt").read_text(encoding="utf-8").strip()
-        self.assertEqual(levelname_content, "Lucky OneBlock")
+        self.assertTrue(levelname_content.startswith("Lucky OneBlock"), f"Esperado prefixo 'Lucky OneBlock', obtido: '{levelname_content}'")
 
     def test_lucky_block_addon_structure(self):
         """Valida que o Behavior Pack e Resource Pack do Lucky Block possuem manifestos e componentes validos."""

@@ -144,6 +144,24 @@ MODS_CATALOG: Dict[str, Dict[str, Any]] = {
             }
         ],
     },
+    "rubyore": {
+        "name": "The Ruby Ore by romhenri (v1.2.0)",
+        "description": "Minerios de rubi (-25 a -49), bloco de rubi, ferramentas e armas superiores a Netherite (durabilidade 2031) e Ruby Hammer",
+        "bp": [
+            {
+                "pack_id": "e8182397-79f0-47eb-bf6f-a8a523ffd7b5",
+                "name": "Ruby Ore BP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+        "rp": [
+            {
+                "pack_id": "8c01126d-d7b0-44ed-bbd3-994b7409e134",
+                "name": "Ruby Ore RP v1.0.0",
+                "version": [1, 0, 0],
+            }
+        ],
+    },
 }
 
 
@@ -152,6 +170,64 @@ def list_available_worlds() -> List[str]:
     if not WORLDS_DIR.exists():
         return []
     return [d.name for d in WORLDS_DIR.iterdir() if d.is_dir() and (d / "level.dat").exists()]
+
+
+def get_active_mods_names(level_name: Optional[str] = None) -> List[str]:
+    """Retorna a lista com o nome de todos os mods atualmente ativos no mundo."""
+    lvl = level_name or read_level_name()
+    active = []
+    for k in MODS_CATALOG:
+        st = get_mod_status(k, lvl)
+        if st["is_active"]:
+            active.append(st["name"])
+    return active
+
+
+def get_all_worlds_mods_matrix() -> List[Dict[str, Any]]:
+    """Gera uma visao comparativa completa de todos os mundos e quais mods estao ativos neles."""
+    active_world = read_level_name()
+    worlds = list_available_worlds()
+    matrix = []
+    for w in worlds:
+        active_mods = []
+        for k in MODS_CATALOG:
+            st = get_mod_status(k, w)
+            if st["is_active"]:
+                active_mods.append(st["name"])
+        w_dir, bp_json, rp_json = get_world_paths(w)
+        bps = load_json_file(bp_json)
+        rps = load_json_file(rp_json)
+        matrix.append({
+            "world": w,
+            "is_active": w == active_world,
+            "active_mods": active_mods,
+            "bp_count": len(bps),
+            "rp_count": len(rps),
+            "is_vanilla": len(active_mods) == 0,
+        })
+    return matrix
+
+
+def print_worlds_mods_matrix() -> None:
+    """Exibe no terminal a matriz inteligente de mundos e mods ativos."""
+    matrix = get_all_worlds_mods_matrix()
+    active_world = read_level_name()
+    print("\n" + "=" * 75)
+    print("      MATRIZ INTELIGENTE DE MUNDOS E MODS ATIVOS NO SERVIDOR (BDS)")
+    print("=" * 75)
+    print(f" Mundo Ativo Principal no BDS: '{active_world}'\n")
+    for item in matrix:
+        status_tag = "[MUNDO ATIVO] " if item["is_active"] else "[INATIVO]     "
+        print(f" {status_tag} {item['world']}")
+        print(f"   * Pacotes Vinculados: {item['bp_count']} BPs / {item['rp_count']} RPs")
+        if item["active_mods"]:
+            print(f"   * Mods Ativos ({len(item['active_mods'])}):")
+            for m in item["active_mods"]:
+                print(f"       + {m}")
+        else:
+            print("   * Mods Ativos: Nenhum (100% Vanilla Limpo)")
+        print("-" * 75)
+    print("=" * 75 + "\n")
 
 
 def switch_active_world(level_name: str) -> bool:
@@ -356,57 +432,69 @@ def print_full_status(level_name: Optional[str] = None):
     lvl = level_name or read_level_name()
     pid = get_bds_pid()
     world_dir, bp_json, rp_json = get_world_paths(lvl)
-    worlds = list_available_worlds()
+    matrix = get_all_worlds_mods_matrix()
 
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 75)
     print("      STATUS DE MODS E ADD-ONS - MINECRAFT BEDROCK DEDICATED SERVER")
-    print("=" * 70)
-    print(f" Servidor BDS:       {'ATIVO (PID: ' + str(pid) + ')' if pid else 'PARADO'}")
-    print(f" Mundo Ativo:        {lvl}")
-    print(f" Pasta do Mundo:     {world_dir}")
-    print(f" Mundos Disponiveis: {', '.join(worlds)}")
-    print("-" * 70)
+    print("=" * 75)
+    print(f" Servidor BDS:          {'ATIVO (PID: ' + str(pid) + ')' if pid else 'PARADO'}")
+    print(f" Mundo Ativo no BDS:    '{lvl}' (Pasta: {world_dir.name})")
+    print("-" * 75)
+    print(" Mundos Instalados no BDS:")
+    for item in matrix:
+        tag = "[ATIVO]   " if item["is_active"] else "[INATIVO] "
+        mod_desc = ", ".join(item["active_mods"]) if item["active_mods"] else "100% Vanilla Limpo"
+        print(f"   {tag} {item['world']:<26} -> {mod_desc}")
+    print("-" * 75)
 
+    active_mods_count = 0
+    print(f" Catalogo de Mods no Mundo '{lvl}':")
     for key in MODS_CATALOG:
         st = get_mod_status(key, lvl)
         if st["is_active"]:
             badge = "[ATIVADO]        "
+            active_mods_count += 1
         elif st["is_partial"]:
             badge = "[PARCIALMENTE]   "
         else:
             badge = "[DESATIVADO]     "
-        print(f" {badge} {st['name']}")
+        print(f"   {badge} {st['name']}")
 
     bps = load_json_file(bp_json)
     rps = load_json_file(rp_json)
-    print("-" * 70)
-    print(f" Total Behavior Packs Ativos: {len(bps)}")
-    for b in bps:
-        print(f"   * UUID: {b.get('pack_id')} (v{b.get('version')})")
-    print(f" Total Resource Packs Ativos: {len(rps)}")
-    for r in rps:
-        print(f"   * UUID: {r.get('pack_id')} (v{r.get('version')})")
-    print("=" * 70 + "\n")
+    print("-" * 75)
+    print(f" Resumo do Mundo '{lvl}': {active_mods_count} mod(s) ativo(s) | {len(bps)} BP(s) | {len(rps)} RP(s)")
+    if bps:
+        print("   Behavior Packs vinculados:")
+        for b in bps:
+            print(f"     * UUID: {b.get('pack_id')} (v{b.get('version')})")
+    if rps:
+        print("   Resource Packs vinculados:")
+        for r in rps:
+            print(f"     * UUID: {r.get('pack_id')} (v{r.get('version')})")
+    print("=" * 75 + "\n")
 
 
 def interactive_menu():
     while True:
         lvl = read_level_name()
         print_full_status(lvl)
-        print("Opcoes:")
+        print("Opcoes de Gerenciamento de Mods:")
         print(" [1] Ativar / Desativar More Spikes (Spiky Spikes)")
         print(" [2] Ativar / Desativar Avaritia: ULTIMATE")
         print(" [3] Ativar / Desativar Spectrite Mod")
         print(" [4] Ativar / Desativar CobbleDrock")
         print(" [5] Ativar / Desativar Lucky Block & OneBlock Engine")
-        print(" [6] Ativar Todos os Mods Compatíveis (Avaritia + Spikes + Spectrite + Lucky Block)")
+        print(" [6] Ativar / Desativar The Ruby Ore (romhenri)")
+        print(" [7] Ativar Combo Compativel (Ruby Ore + Avaritia + Spikes + Spectrite + Lucky Block)")
+        print(" [M] Exibir Matriz Completa de Mundos x Mods Ativos")
         print(" [D] Desativar TODOS os Mods (Deixar Mundo 100% Vanilla / Limpo)")
-        print(" [7] Alternar Mundo Ativo (Cobbled Farms / Lucky OneBlock / Spiral / Padrão)")
-        print(" [8] Ativar Lucky OneBlock (Mundo OneBlock)")
-        print(" [9] Ativar Cobbled Farms (Mundo Cobblemon)")
+        print(" [8] Alternar Mundo Ativo (Cobbled Farms / Lucky OneBlock / Spiral / Padrão)")
+        print(" [9] Ativar Lucky OneBlock (Mundo OneBlock)")
+        print(" [C] Ativar Cobbled Farms (Mundo Cobblemon)")
         print(" [R] Atualizar exibicao")
         print(" [0] Voltar")
-        print("-" * 70)
+        print("-" * 75)
         try:
             choice = input("Escolha: ").strip().lower()
         except (KeyboardInterrupt, EOFError):
@@ -448,15 +536,37 @@ def interactive_menu():
                 enable_mod("luckyblock", lvl)
             input("\nPressione ENTER para continuar...")
         elif choice == "6":
+            st = get_mod_status("rubyore", lvl)
+            if st["is_active"]:
+                disable_mod("rubyore", lvl)
+            else:
+                # Se o pacote ainda nao foi gerado, roda o instalador primeiro
+                bp_check = WORLDS_DIR.parent / "custom_packs" / "behavior_packs" / "RubyOre_BP"
+                if not bp_check.exists():
+                    import instalar_ruby_ore
+                    instalar_ruby_ore.install_ruby_ore(activate_as_current=False)
+                enable_mod("rubyore", lvl)
+            input("\nPressione ENTER para continuar...")
+        elif choice == "7":
+            # Assegura que Ruby Ore existe
+            bp_check = WORLDS_DIR.parent / "custom_packs" / "behavior_packs" / "RubyOre_BP"
+            if not bp_check.exists():
+                import instalar_ruby_ore
+                instalar_ruby_ore.install_ruby_ore(activate_as_current=False)
+            enable_mod("rubyore", lvl)
             enable_mod("avaritia", lvl)
             enable_mod("spikes", lvl)
             enable_mod("spectrite", lvl)
             enable_mod("luckyblock", lvl)
+            print("[SUCESSO] Combo ativado: Ruby Ore + Avaritia + Spikes + Spectrite + Lucky Block!")
+            input("\nPressione ENTER para continuar...")
+        elif choice == "m":
+            print_worlds_mods_matrix()
             input("\nPressione ENTER para continuar...")
         elif choice == "d":
             disable_all_mods(lvl)
             input("\nPressione ENTER para continuar...")
-        elif choice == "7":
+        elif choice == "8":
             worlds = list_available_worlds()
             print("\nMundos Disponíveis:")
             for i, w in enumerate(worlds, 1):
@@ -469,14 +579,14 @@ def interactive_menu():
             except Exception as e:
                 print(f"[!] Erro ao alternar: {e}")
             input("\nPressione ENTER para continuar...")
-        elif choice == "8":
+        elif choice == "9":
             if "Lucky OneBlock" in list_available_worlds():
                 if switch_active_world("Lucky OneBlock"):
                     print("[SUCESSO] Mundo alternado para 'Lucky OneBlock'!")
             else:
                 print("[!] 'Lucky OneBlock' nao esta instalado. Execute instalar_lucky_oneblock.py.")
             input("\nPressione ENTER para continuar...")
-        elif choice == "9":
+        elif choice == "c":
             if switch_active_world("Cobbled Farms"):
                 print("[SUCESSO] Mundo alternado para 'Cobbled Farms'!")
             input("\nPressione ENTER para continuar...")
@@ -493,14 +603,16 @@ def main():
     parser = argparse.ArgumentParser(description="Gerenciador Central de Mods para Bedrock Server")
     parser.add_argument("--status", "-s", action="store_true", help="Exibe o status completo dos mods")
     parser.add_argument("--world", help="Especifica o mundo a ser gerenciado (padrao: mundo ativo)")
+    parser.add_argument("--matrix", action="store_true", help="Exibe matriz de todos os mundos e quais mods estao ativos")
     parser.add_argument("--spikes", choices=["enable", "disable", "status"], help="Gerencia More Spikes")
     parser.add_argument("--avaritia", choices=["enable", "disable", "status"], help="Gerencia Avaritia")
     parser.add_argument("--spectrite", choices=["enable", "disable", "status"], help="Gerencia Spectrite Mod")
     parser.add_argument("--cobbledrock", choices=["enable", "disable", "status"], help="Gerencia CobbleDrock")
     parser.add_argument("--luckyblock", choices=["enable", "disable", "status"], help="Gerencia Lucky Block & OneBlock Engine")
+    parser.add_argument("--rubyore", choices=["enable", "disable", "status"], help="Gerencia The Ruby Ore (romhenri)")
     parser.add_argument("--lucky-oneblock", choices=["activate", "status", "install"], help="Gerencia o mapa Lucky OneBlock")
     parser.add_argument("--cobbled-farms", choices=["activate", "status", "install"], help="Gerencia o mapa Cobbled Farms")
-    parser.add_argument("--enable-combo", action="store_true", help="Ativa Avaritia + More Spikes + Spectrite + Lucky Block")
+    parser.add_argument("--enable-combo", action="store_true", help="Ativa Ruby Ore + Avaritia + More Spikes + Spectrite + Lucky Block")
     parser.add_argument("--disable-all", action="store_true", help="Desativa todos os mods no mundo especificado ou ativo (modo vanilla limpo)")
     parser.add_argument("--switch-world", help="Altera o level-name ativo em server.properties")
     parser.add_argument("--list-worlds", action="store_true", help="Lista todos os mundos instalados")
@@ -508,7 +620,9 @@ def main():
 
     target_world = args.world or read_level_name()
 
-    if args.list_worlds:
+    if args.matrix:
+        print_worlds_mods_matrix()
+    elif args.list_worlds:
         worlds = list_available_worlds()
         print("Mundos instalados:")
         for w in worlds:
@@ -544,6 +658,14 @@ def main():
             instalar_cobbled_farms.install_cobbled_farms(activate_as_current=True)
     elif args.status:
         print_full_status(target_world)
+    elif args.rubyore:
+        if args.rubyore == "enable":
+            enable_mod("rubyore", target_world)
+        elif args.rubyore == "disable":
+            disable_mod("rubyore", target_world)
+        else:
+            st = get_mod_status("rubyore", target_world)
+            print(f"The Ruby Ore ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.spikes:
         if args.spikes == "enable":
             enable_mod("spikes", target_world)
@@ -585,6 +707,7 @@ def main():
             st = get_mod_status("luckyblock", target_world)
             print(f"Lucky Block ({target_world}): {'ATIVO' if st['is_active'] else 'DESATIVADO'}")
     elif args.enable_combo:
+        enable_mod("rubyore", target_world)
         enable_mod("avaritia", target_world)
         enable_mod("spikes", target_world)
         enable_mod("spectrite", target_world)

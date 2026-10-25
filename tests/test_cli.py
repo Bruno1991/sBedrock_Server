@@ -65,6 +65,19 @@ class TestUnifiedCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("Backups de mundos:", result.stdout)
 
+    def test_cli_matrix(self):
+        """Valida execucao de cli.py --matrix exibindo a visao geral de mundos e mods."""
+        result = subprocess.run([sys.executable, str(CLI_PY), "--matrix"], capture_output=True, text=True, cwd=str(WINDOWS_DIR), encoding="utf-8", errors="replace")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("MATRIZ INTELIGENTE DE MUNDOS E MODS", result.stdout)
+        self.assertIn("Mundo Ativo Principal no BDS", result.stdout)
+
+    def test_cli_rubyore_status(self):
+        """Valida execucao de cli.py --rubyore status."""
+        result = subprocess.run([sys.executable, str(CLI_PY), "--rubyore", "status"], capture_output=True, text=True, cwd=str(WINDOWS_DIR), encoding="utf-8", errors="replace")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("The Ruby Ore", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

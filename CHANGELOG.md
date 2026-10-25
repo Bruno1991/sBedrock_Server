@@ -57,6 +57,9 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - `windows/server_manager.py`: Módulo inteligente de gerenciamento de backend fornecendo telemetria em tempo real (RAM, CPU, Uptime, Socket UDP), parada graciosa com flush de LevelDB, reinício seguro, descoberta dinâmica de mundos, snapshots em ZIP, central CurseForge e diagnóstico profundo com auto-reparo.
   - `windows/cli.py`: Utilitário CLI unificado refatorado com interface moderna, menu rico em telemetria, atalhos de terminal (`--lucky-oneblock`, `--healthcheck`, `--backup-world`, `--cmd`, `--stop`, `--restart`) e 100% de compatibilidade retroativa.
   - `tests/test_lucky_oneblock.py` e `tests/test_server_manager.py`: Suíte expandida para 49 testes unitários e de integração com 100% de aprovação.
-
-
-
+- **Port de The Ruby Ore e Inteligência de Mods & Mundos (Fase 6)**:
+  - `windows/instalar_ruby_ore.py`: Instalador e port nativo para Bedrock Dedicated Server do mod oficial do CurseForge *The Ruby Ore* (`romhenris-ruby-ore` por *romhenri*), incluindo minérios de rubi (Y: -25 a -49), bloco de rubi, armas e ferramentas superiores a Netherite (durabilidade 2031), martelo de escavação 3x3 (`ruby_hammer`), machado de combate (`ruby_combat_axe`), receitas completas e texturas 16x16 pixel-art oficiais.
+  - `windows/gerenciar_mods.py`: Adição do mod `rubyore` ao catálogo central, novas funções `get_all_worlds_mods_matrix()`, `get_active_mods_names()` e `print_worlds_mods_matrix()` fornecendo matriz detalhada e comparativa de mundos e mods.
+  - `windows/server_manager.py`: Reconhecimento e roteamento automático da URL oficial do CurseForge (`https://www.curseforge.com/minecraft/mc-mods/romhenris-ruby-ore`), enriquecimento do `get_server_status()` e `list_worlds_detailed()` com lista e contagem de mods ativos por mundo.
+  - `windows/cli.py`: Painel centralizado do menu interativo e comandos (`--status`, `--matrix`, `--rubyore`) reformulados para destacar visualmente em tempo real qual mundo está ativo, quais mods estão ativos em cada mundo e atalhos rápidos de instalação e ativação.
+  - `tests/test_ruby_ore.py`: Testes unitários cobrindo estrutura de pacotes BP/RP, resolução de URLs do CurseForge, validação de itens, blocos e matriz de telemetria, expandindo a suíte para 57 testes com 100% de aprovação.

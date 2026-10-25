@@ -213,11 +213,13 @@ def manage_worlds():
 
         detailed = sm.list_worlds_detailed() if sm is not None else []
         if detailed:
-            print(" Mundos Instalados:")
+            print(" Mundos Instalados no BDS:")
             for idx, w in enumerate(detailed, 1):
                 active_tag = " [ATIVO]" if w["is_active"] else ""
                 packs_tag = f" ({w['bp_count']} BPs / {w['rp_count']} RPs)" if w["bp_count"] or w["rp_count"] else ""
+                mods_desc = ", ".join(w["active_mods"]) if w.get("active_mods") else "100% Vanilla Limpo"
                 print(f"  [{idx}] {w['name']:<25} {w['size_mb']:>6} MB | Modificado: {w['last_modified']}{active_tag}{packs_tag}")
+                print(f"       Mods Ativos: {mods_desc}")
         else:
             print(f" Mundos Disponiveis: {', '.join(available_worlds)}")
 
@@ -364,6 +366,18 @@ def install_cobbled_farms_flow(activate: bool = True):
     subprocess.run(cmd, cwd=str(WINDOWS_DIR))
 
 
+def install_ruby_ore_flow(activate: bool = True):
+    """Executa o instalador oficial do Add-on The Ruby Ore (romhenri)."""
+    script = WINDOWS_DIR / "instalar_ruby_ore.py"
+    if not script.is_file():
+        print(f"[ERRO] Script instalador nao encontrado: {script}")
+        return
+    cmd = [sys.executable, str(script)]
+    if activate:
+        cmd.append("--activate")
+    subprocess.run(cmd, cwd=str(WINDOWS_DIR))
+
+
 def curseforge_hub_flow():
     """Opcao [6]: Central CurseForge para instalacao de mundos e mods."""
     print("\n" + "=" * 65)
@@ -371,16 +385,19 @@ def curseforge_hub_flow():
     print("=" * 65)
     print(" [1] Instalar / Atualizar 'Lucky OneBlock' (CurseForge 872580)")
     print(" [2] Instalar / Atualizar 'Cobbled Farms' (CurseForge 924311)")
-    print(" [3] Informar URL ou Slug do CurseForge...")
+    print(" [3] Instalar / Atualizar 'The Ruby Ore' (CurseForge romhenris-ruby-ore)")
+    print(" [4] Informar URL ou Slug do CurseForge...")
     print(" [0] Voltar")
     print("-" * 65)
-    c = input(" Escolha uma opcao (0-3): ").strip()
+    c = input(" Escolha uma opcao (0-4): ").strip()
 
     if c == "1":
         install_lucky_oneblock_flow(activate=True)
     elif c == "2":
         install_cobbled_farms_flow(activate=True)
     elif c == "3":
+        install_ruby_ore_flow(activate=True)
+    elif c == "4":
         raw = input(" Cole a URL do CurseForge: ").strip()
         if raw:
             if sm is not None:
@@ -486,26 +503,38 @@ def interactive_menu():
         current_world = read_level_name()
         total_worlds = status_info.get("total_worlds", len(list_available_worlds()))
 
-        print("\n" + "=" * 70)
+        print("\n" + "=" * 75)
         print("      S_BEDROCK_SERVER: UTILITARIO DE GERENCIA INTELIGENTE")
-        print("=" * 70)
+        print("=" * 75)
         print(f" Status do Servidor BDS: {status_tag}")
-        print(f" Mundo Ativo no BDS:     {current_world} (Total: {total_worlds} mundos)")
+        print(f" Mundo Ativo no BDS:     [ATIVO] '{current_world}'")
         if status_info.get("active_mods"):
-            print(f" Mods Ativos:            {', '.join(status_info['active_mods'][:3])}...")
-        print("-" * 70)
+            print(f" Mods Ativos no Mundo:   {', '.join(status_info['active_mods'])}")
+        else:
+            print(" Mods Ativos no Mundo:   Nenhum (100% Vanilla Limpo)")
+
+        worlds_matrix = status_info.get("worlds_matrix") or (sm.get_server_status().get("worlds_matrix") if sm else [])
+        if worlds_matrix:
+            print("-" * 75)
+            print(" Panorama dos Mundos & Mods:")
+            for wm in worlds_matrix:
+                w_tag = "[ATIVO]  " if wm["is_active"] else "[INATIVO]"
+                w_mods = ", ".join(wm["active_mods"]) if wm["active_mods"] else "Vanilla Limpo"
+                print(f"  {w_tag} {wm['world']:<24} -> {w_mods}")
+        print("-" * 75)
         print(" [1] Iniciar Servidor (Janela Dedicada / Background ou 1º Plano)")
         print(" [2] Parar / Reiniciar Servidor (Parada Graciosa com Flush)")
         print(" [3] Enviar Comando ao Console Vivo do BDS (list, time, say...)")
         print(" [4] Gerenciador de Mundos & Mapas (Lucky OneBlock, Cobbled, Backups)")
         print(" [5] Gerenciador de Mods e Add-ons (Ativar / Desativar Pacotes)")
-        print(" [6] Central CurseForge: Instalar Lucky OneBlock / Cobbled / URL")
+        print(" [6] Central CurseForge: Instalar Lucky OneBlock / Cobbled / Ruby Ore / URL")
+        print(" [M] Exibir Matriz Completa de Mundos x Mods Ativos")
         print(" [7] Conceder Privilegios de Operador (dar_op / Auto-OP)")
         print(" [8] Diagnóstico de Saúde e Auto-Reparo (Healthcheck / Fix)")
         print(" [9] Resetar Mapa Padrao (voltar ao original limpo)")
         print(" [L] Visualizar Logs Recentes do Servidor")
         print(" [0] Sair")
-        print("=" * 70)
+        print("=" * 75)
 
         try:
             choice = input(" Escolha uma opcao: ").strip().lower()
@@ -535,6 +564,10 @@ def interactive_menu():
             manage_mods()
         elif choice == "6":
             curseforge_hub_flow()
+        elif choice == "m":
+            if hasattr(gerenciar_mods, "print_worlds_mods_matrix"):
+                gerenciar_mods.print_worlds_mods_matrix()
+            input("\nPressione ENTER para voltar ao menu...")
         elif choice == "7":
             print("\n" + "-" * 65)
             print(" Conceder Privilegios de Operador (dar_op)")
@@ -584,12 +617,15 @@ def main():
     parser.add_argument("--backup-world", nargs="?", const="", help="Gera backup ZIP do mundo informado ou ativo")
     parser.add_argument("--list-backups", action="store_true", help="Lista os backups de mundos arquivados")
 
-    # Atalhos de mundos oficiais
+    # Atalhos de mundos e mods oficiais
     parser.add_argument("--lucky-oneblock", action="store_true", help="Ativa Lucky OneBlock com Lucky Block Engine imediatamente")
     parser.add_argument("--install-lucky-oneblock", action="store_true", help="Executa o instalador do Lucky OneBlock do CurseForge")
     parser.add_argument("--cobbled-farms", action="store_true", help="Ativa Cobbled Farms com CobbleDrock imediatamente")
     parser.add_argument("--install-cobbled-farms", action="store_true", help="Executa o instalador do Cobbled Farms do CurseForge")
+    parser.add_argument("--rubyore", choices=["enable", "disable", "status"], help="Gerencia The Ruby Ore (romhenri)")
+    parser.add_argument("--install-ruby-ore", action="store_true", help="Executa o instalador do The Ruby Ore (romhenri) do CurseForge")
     parser.add_argument("--install-curseforge", type=str, help="Instala mapa/mod a partir de URL ou slug do CurseForge")
+    parser.add_argument("--matrix", action="store_true", help="Exibe matriz completa de todos os mundos e seus mods ativos")
 
     # Administracao e Diagnostico
     parser.add_argument("--op", type=str, help="[4] Gamertag para conceder operador")
@@ -645,6 +681,20 @@ def main():
             print("[SUCESSO] Cobbled Farms ativado com CobbleDrock!")
     elif args.install_cobbled_farms:
         install_cobbled_farms_flow(activate=True)
+    elif args.rubyore:
+        target = args.world if args.world else read_level_name()
+        if args.rubyore == "enable":
+            enable_mod("rubyore", target)
+        elif args.rubyore == "disable":
+            disable_mod("rubyore", target)
+        else:
+            st = get_mod_status("rubyore", target)
+            print(f"The Ruby Ore ({target}): {'ATIVO' if st.get('is_active') else 'DESATIVADO'}")
+    elif args.install_ruby_ore:
+        install_ruby_ore_flow(activate=True)
+    elif args.matrix:
+        if hasattr(gerenciar_mods, "print_worlds_mods_matrix"):
+            gerenciar_mods.print_worlds_mods_matrix()
     elif args.install_curseforge:
         if sm is not None:
             ok, msg = sm.install_from_curseforge(args.install_curseforge, activate=True)
@@ -684,10 +734,24 @@ def main():
             pid_str = f"ATIVO (PID: {st['pid']})" if st["running"] else "PARADO"
             if st["running"] and st["memory_mb"]:
                 pid_str += f" [RAM: {st['memory_mb']} MB]"
-            print(f"Status do Servidor BDS: {pid_str}")
-            print(f"Mundo Ativo no BDS:     {st['active_world']}")
+            print("\n" + "=" * 75)
+            print("                 STATUS DETALHADO DO SERVIDOR BDS")
+            print("=" * 75)
+            print(f" Status do Servidor BDS: {pid_str}")
+            print(f" Mundo Ativo no BDS:     '{st['active_world']}'")
             if st["active_mods"]:
-                print(f"Mods Ativos:            {', '.join(st['active_mods'])}")
+                print(f" Mods Ativos no Mundo:   {', '.join(st['active_mods'])}")
+            else:
+                print(" Mods Ativos no Mundo:   Nenhum (100% Vanilla Limpo)")
+
+            if st.get("worlds_matrix"):
+                print("-" * 75)
+                print(" Matriz de Mundos & Mods:")
+                for wm in st["worlds_matrix"]:
+                    w_tag = "[ATIVO]  " if wm["is_active"] else "[INATIVO]"
+                    w_mods = ", ".join(wm["active_mods"]) if wm["active_mods"] else "Vanilla Limpo"
+                    print(f"  {w_tag} {wm['world']:<24} -> {w_mods}")
+            print("=" * 75 + "\n")
         else:
             pid = get_bds_pid()
             current = read_level_name()
